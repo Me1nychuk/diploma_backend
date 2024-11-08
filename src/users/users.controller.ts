@@ -7,13 +7,12 @@ import {
   Param,
   Delete,
   Query,
-  HttpException,
-  HttpStatus,
   ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { isValidUUID } from 'src/helpers/isValidUUID';
 
 @Controller('users')
 export class UsersController {
@@ -34,14 +33,7 @@ export class UsersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    const newId = id.trim();
-
-    if (!newId) {
-      throw new HttpException(
-        'Entered id is not valid',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    isValidUUID(id);
     return this.usersService.findOne(id);
   }
 
@@ -50,27 +42,13 @@ export class UsersController {
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
   ) {
-    const newId = id.trim();
-
-    if (!newId) {
-      throw new HttpException(
-        'Entered id is not valid',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    isValidUUID(id);
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    const newId = id.trim();
-
-    if (!newId) {
-      throw new HttpException(
-        'Entered id is not valid',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    isValidUUID(id);
     return this.usersService.remove(id);
   }
 }
