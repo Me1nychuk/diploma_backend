@@ -27,5 +27,6 @@ module.exports = {
     'prettier/prettier': 'error', // Потрібно, щоб Prettier працював разом з ESLint і виправляв форматування
     'no-console': 'warn', // Попередження про використання `console.log`
     'no-unused-vars': 'warn', // Попередження про невикористані змінні
+    'specific-rule-name': 'off',
   },
 };
