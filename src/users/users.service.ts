@@ -1,9 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Prisma, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { PrepareResponse } from 'src/helpers/prepareResponse';
+import { handleError } from 'src/helpers/handleError';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +16,11 @@ export class UsersService {
         where: {
           id: id,
         },
+        include: {
+          comments: true,
+          discussions: true,
+          opinions: true,
+        },
       });
 
       if (!user) {
@@ -23,19 +29,7 @@ export class UsersService {
 
       return user;
     } catch (error: unknown) {
-      if (error instanceof HttpException) {
-        throw error;
-      } else if (error instanceof Error) {
-        throw new HttpException(
-          `Error checking if user exists: ${error.message}`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      } else {
-        throw new HttpException(
-          'An unknown error occurred while fetching user',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      handleError(error, 'Error checking if user exists');
     }
   }
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -48,28 +42,7 @@ export class UsersService {
         },
       });
     } catch (error: unknown) {
-      console.error('Error:', error);
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new HttpException(
-            `User with email ${createUserDto.email} already exists.`,
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-
-      if (error instanceof Error) {
-        throw new HttpException(
-          `Error creating user: ${error.message}`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-
-      throw new HttpException(
-        'An unknown error occurred while creating user.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      handleError(error, 'Error creating user');
     }
   }
 
@@ -96,19 +69,7 @@ export class UsersService {
         Number(page),
       );
     } catch (error: unknown) {
-      if (error instanceof HttpException) {
-        throw error;
-      } else if (error instanceof Error) {
-        throw new HttpException(
-          `Error getting users: ${error.message}`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      } else {
-        throw new HttpException(
-          'An unknown error occurred while fetching users',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      handleError(error, 'Error getting users');
     }
   }
 
@@ -124,19 +85,7 @@ export class UsersService {
       }
       return user;
     } catch (error: unknown) {
-      if (error instanceof HttpException) {
-        throw error;
-      } else if (error instanceof Error) {
-        throw new HttpException(
-          `Error getting user: ${error.message}`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      } else {
-        throw new HttpException(
-          'An unknown error occurred while fetching users',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      handleError(error, 'Error getting user');
     }
   }
 
@@ -160,19 +109,7 @@ export class UsersService {
 
       return user;
     } catch (error: unknown) {
-      if (error instanceof HttpException) {
-        throw error;
-      } else if (error instanceof Error) {
-        throw new HttpException(
-          `Error checking if user exists: ${error.message}`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      } else {
-        throw new HttpException(
-          'An unknown error occurred while fetching user',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      handleError(error, 'Error updating user');
     }
   }
 
@@ -186,19 +123,7 @@ export class UsersService {
       });
       return user;
     } catch (error: unknown) {
-      if (error instanceof HttpException) {
-        throw error;
-      } else if (error instanceof Error) {
-        throw new HttpException(
-          `Error checking if user exists: ${error.message}`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      } else {
-        throw new HttpException(
-          'An unknown error occurred while fetching user',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      handleError(error, 'Error deleting user');
     }
   }
 }
