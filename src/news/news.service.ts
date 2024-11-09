@@ -45,7 +45,7 @@ export class NewsService {
         },
       });
       if (!news) {
-        throw new HttpException(`News not found`, HttpStatus.NOT_FOUND);
+        throw new HttpException(`News not created`, HttpStatus.BAD_REQUEST);
       }
       return news;
     } catch (error) {
