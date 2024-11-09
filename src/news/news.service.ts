@@ -40,6 +40,9 @@ export class NewsService {
           content: createNewsDto.content,
           imageUrl: createNewsDto.imageUrl,
         },
+        include: {
+          comments: true,
+        },
       });
       if (!news) {
         throw new HttpException(`News not found`, HttpStatus.NOT_FOUND);
@@ -65,6 +68,9 @@ export class NewsService {
             contains: search,
           },
         },
+        include: {
+          comments: true,
+        },
       });
       if (news.length === 0) {
         throw new HttpException(`News not found`, HttpStatus.NOT_FOUND);
@@ -86,6 +92,9 @@ export class NewsService {
       const news = await this.prisma.news.findFirst({
         where: {
           id: id,
+        },
+        include: {
+          comments: true,
         },
       });
       if (!news) {
@@ -110,6 +119,9 @@ export class NewsService {
           content: updateNewsDto.content ?? undefined,
           imageUrl: updateNewsDto.imageUrl ?? undefined,
         },
+        include: {
+          comments: true,
+        },
       });
 
       return updatedNews;
@@ -124,6 +136,9 @@ export class NewsService {
       return this.prisma.news.delete({
         where: {
           id: id,
+        },
+        include: {
+          comments: true,
         },
       });
     } catch (error) {
