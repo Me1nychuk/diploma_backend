@@ -8,7 +8,7 @@ import {
   Length,
   MinLength,
 } from 'class-validator';
-import { Role } from 'src/types/role.enum';
+import { Role } from 'src/types/types';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()

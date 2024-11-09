@@ -1,4 +1,4 @@
-import { Role } from '../src/types/role.enum';
+import { Role } from '../src/types/types';
 export const users = [
   {
     fullname: 'John Doe',

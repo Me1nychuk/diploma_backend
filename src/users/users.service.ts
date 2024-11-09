@@ -5,6 +5,7 @@ import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { PrepareResponse } from 'src/helpers/prepareResponse';
 import { handleError } from 'src/helpers/handleError';
+import { PaginatedResponse, Role } from 'src/types/types';
 
 @Injectable()
 export class UsersService {
@@ -46,7 +47,10 @@ export class UsersService {
     }
   }
 
-  async findAll(per_page: string, page: string) {
+  async findAll(
+    per_page: string,
+    page: string,
+  ): Promise<PaginatedResponse<User> | null> {
     try {
       const users = await this.prisma.user.findMany({
         skip: Number(per_page) * (Number(page) - 1),
@@ -73,7 +77,7 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<User | null> {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
@@ -89,7 +93,7 @@ export class UsersService {
     }
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     try {
       await this.checkUserExists(id);
 
@@ -103,7 +107,7 @@ export class UsersService {
           password: updateUserDto.password ?? undefined,
           phone: updateUserDto.phone ?? undefined,
           bio: updateUserDto.bio ?? undefined,
-          role: updateUserDto.role ?? undefined,
+          role: Role[updateUserDto.role] ?? undefined,
         },
       });
 
@@ -113,7 +117,7 @@ export class UsersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<User | null> {
     try {
       await this.checkUserExists(id);
       const user = await this.prisma.user.delete({
