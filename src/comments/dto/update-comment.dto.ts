@@ -5,6 +5,7 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 export class UpdateCommentDto extends PartialType(CreateCommentDto) {
   @IsString()
   @IsNotEmpty()
+  @IsOptional()
   content: string;
 
   @IsString()
