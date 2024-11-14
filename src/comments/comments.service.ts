@@ -3,8 +3,10 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { handleError } from 'src/helpers/handleError';
 import { PrismaService } from 'src/prisma.service';
-import { News, User } from '@prisma/client';
+import { Comment, News, User } from '@prisma/client';
 import { isValidUUID } from 'src/helpers/isValidUUID';
+import { PrepareResponse } from 'src/helpers/prepareResponse';
+import { PaginatedResponse } from 'src/types/types';
 
 @Injectable()
 export class CommentsService {
@@ -45,25 +47,25 @@ export class CommentsService {
       handleError(error, 'Error checking news existence');
     }
   }
-  async checkCommentExists(id: string): Promise<News | null> {
+  async checkCommentExists(id: string): Promise<Comment | null> {
     try {
       isValidUUID(id);
 
-      const news = await this.prisma.news.findFirst({
+      const comment = await this.prisma.comment.findFirst({
         where: {
           id: id,
         },
       });
-      if (!news) {
+      if (!comment) {
         throw new HttpException(`News not found`, HttpStatus.NOT_FOUND);
       }
-      return news;
+      return comment;
     } catch (error) {
       handleError(error, 'Error checking news existence');
     }
   }
 
-  async create(createCommentDto: CreateCommentDto) {
+  async create(createCommentDto: CreateCommentDto): Promise<Comment | null> {
     try {
       await this.checkAuthorExists(createCommentDto.authorId);
       const newComment = await this.prisma.comment.create({
@@ -72,30 +74,40 @@ export class CommentsService {
       if (!newComment) {
         throw new HttpException(`Comment not created `, HttpStatus.NOT_FOUND);
       }
+      return newComment;
     } catch (error) {
       handleError(error, 'Error creating a new comment');
     }
   }
 
-  async findAll(newsId: string) {
+  async findAll(
+    per_page: string,
+    page: string,
+  ): Promise<PaginatedResponse<Comment> | null> {
     try {
-      const news = await this.prisma.comment.findMany({
-        where: {
-          newsId: newsId,
-        },
+      const comments = await this.prisma.comment.findMany({
+        skip: Number(per_page) * (Number(page) - 1),
+        take: Number(per_page),
       });
-      if (!news) {
+      if (comments.length === 0) {
         throw new HttpException(
           `No comments found for the given news`,
           HttpStatus.NOT_FOUND,
         );
       }
+      const allComments = await this.prisma.comment.findMany();
+      return PrepareResponse(
+        comments,
+        allComments.length,
+        Math.ceil(allComments.length / Number(per_page)),
+        Number(page),
+      );
     } catch (error) {
       handleError(error, 'Error finding all comments for a news');
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Comment | null> {
     try {
       return await this.checkCommentExists(id);
     } catch (error) {
@@ -103,7 +115,10 @@ export class CommentsService {
     }
   }
 
-  async update(id: string, updateCommentDto: UpdateCommentDto) {
+  async update(
+    id: string,
+    updateCommentDto: UpdateCommentDto,
+  ): Promise<Comment | null> {
     try {
       await this.checkCommentExists(id);
       const updatedComment = await this.prisma.comment.update({
@@ -125,7 +140,7 @@ export class CommentsService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<Comment | null> {
     try {
       await this.checkCommentExists(id);
       const deletedComment = await this.prisma.comment.delete({

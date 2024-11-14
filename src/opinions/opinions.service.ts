@@ -53,8 +53,13 @@ export class OpinionsService {
       if (opinions.length === 0) {
         throw new HttpException(`Opinions not found`, HttpStatus.NOT_FOUND);
       }
-
-      return PrepareResponse(opinions, opinions.length, 1, Number(page));
+      const allOpinions = await this.prisma.opinion.findMany();
+      return PrepareResponse(
+        opinions,
+        allOpinions.length,
+        Math.ceil(allOpinions.length / Number(per_page)),
+        Number(page),
+      );
     } catch (error) {
       handleError(error, 'Error finding all opinions');
     }

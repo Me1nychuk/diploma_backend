@@ -24,9 +24,11 @@ export class CommentsController {
   }
 
   @Get()
-  findAll(@Query('newsId') newsId: string) {
-    isValidUUID(newsId);
-    return this.commentsService.findAll(newsId);
+  findAll(
+    @Query('per_page') per_page: string = '10',
+    @Query('page') page: string = '1',
+  ) {
+    return this.commentsService.findAll(per_page, page);
   }
 
   @Get(':id')
@@ -40,11 +42,13 @@ export class CommentsController {
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateCommentDto: UpdateCommentDto,
   ) {
+    isValidUUID(id);
     return this.commentsService.update(id, updateCommentDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
+    isValidUUID(id);
     return this.commentsService.remove(id);
   }
 }
