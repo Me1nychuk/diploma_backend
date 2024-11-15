@@ -18,6 +18,10 @@ export class OpinionsService {
         where: {
           id: id,
         },
+        include: {
+          author: true,
+          discussion: true,
+        },
       });
       if (!opinion) {
         throw new HttpException(`Opinion not found`, HttpStatus.NOT_FOUND);
@@ -31,6 +35,10 @@ export class OpinionsService {
     try {
       const newOpinion = await this.prisma.opinion.create({
         data: { ...createOpinionDto },
+        include: {
+          author: true,
+          discussion: true,
+        },
       });
       if (!newOpinion) {
         throw new HttpException(`Opinion not created `, HttpStatus.NOT_FOUND);
@@ -49,6 +57,10 @@ export class OpinionsService {
       const opinions = await this.prisma.opinion.findMany({
         take: Number(per_page),
         skip: (Number(page) - 1) * Number(per_page),
+        include: {
+          author: true,
+          discussion: true,
+        },
       });
       if (opinions.length === 0) {
         throw new HttpException(`Opinions not found`, HttpStatus.NOT_FOUND);
@@ -88,6 +100,10 @@ export class OpinionsService {
           authorId: updateOpinionDto.authorId ?? undefined,
           discussionId: updateOpinionDto.discussionId ?? undefined,
         },
+        include: {
+          author: true,
+          discussion: true,
+        },
       });
       if (!updatedOpinion) {
         throw new HttpException(`Opinion not updated`, HttpStatus.NOT_FOUND);
@@ -104,6 +120,10 @@ export class OpinionsService {
       const deletedOpinion = await this.prisma.opinion.delete({
         where: {
           id: id,
+        },
+        include: {
+          author: true,
+          discussion: true,
         },
       });
       if (!deletedOpinion) {

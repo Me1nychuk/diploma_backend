@@ -55,6 +55,10 @@ export class CommentsService {
         where: {
           id: id,
         },
+        include: {
+          author: true,
+          news: true,
+        },
       });
       if (!comment) {
         throw new HttpException(`News not found`, HttpStatus.NOT_FOUND);
@@ -68,8 +72,13 @@ export class CommentsService {
   async create(createCommentDto: CreateCommentDto): Promise<Comment | null> {
     try {
       await this.checkAuthorExists(createCommentDto.authorId);
+      await this.checkNewsExists(createCommentDto.newsId);
       const newComment = await this.prisma.comment.create({
         data: { ...createCommentDto },
+        include: {
+          author: true,
+          news: true,
+        },
       });
       if (!newComment) {
         throw new HttpException(`Comment not created `, HttpStatus.NOT_FOUND);
@@ -88,6 +97,10 @@ export class CommentsService {
       const comments = await this.prisma.comment.findMany({
         skip: Number(per_page) * (Number(page) - 1),
         take: Number(per_page),
+        include: {
+          author: true,
+          news: true,
+        },
       });
       if (comments.length === 0) {
         throw new HttpException(
@@ -130,6 +143,10 @@ export class CommentsService {
           authorId: updateCommentDto.authorId ?? undefined,
           newsId: updateCommentDto.newsId ?? undefined,
         },
+        include: {
+          author: true,
+          news: true,
+        },
       });
       if (!updatedComment) {
         throw new HttpException(`Comment not updated`, HttpStatus.NOT_FOUND);
@@ -146,6 +163,10 @@ export class CommentsService {
       const deletedComment = await this.prisma.comment.delete({
         where: {
           id: id,
+        },
+        include: {
+          author: true,
+          news: true,
         },
       });
       if (!deletedComment) {
