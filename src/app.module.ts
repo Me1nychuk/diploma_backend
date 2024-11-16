@@ -4,6 +4,7 @@ import { NewsModule } from './news/news.module';
 import { OpinionsModule } from './opinions/opinions.module';
 import { DiscussionsModule } from './discussions/discussions.module';
 import { CommentsModule } from './comments/comments.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { CommentsModule } from './comments/comments.module';
     CommentsModule,
     DiscussionsModule,
     OpinionsModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
