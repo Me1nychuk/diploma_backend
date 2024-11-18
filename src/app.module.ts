@@ -5,6 +5,7 @@ import { OpinionsModule } from './opinions/opinions.module';
 import { DiscussionsModule } from './discussions/discussions.module';
 import { CommentsModule } from './comments/comments.module';
 import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
     DiscussionsModule,
     OpinionsModule,
     AuthModule,
+    ConfigModule.forRoot({ isGlobal: true }),
   ],
   controllers: [],
   providers: [],
