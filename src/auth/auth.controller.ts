@@ -1,34 +1,50 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  ValidationPipe,
+  Param,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { RegisterAuthDto } from './dto/register-auth.dto';
+import { LoginAuthDto } from './dto/login-auth.dto';
+import { ForgotPasswordDto } from './dto/forgot-password-dto';
+import { isValidUUID } from 'src/helpers/isValidUUID';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Post('/register')
+  register(@Body(new ValidationPipe()) RegisterAuthDto: RegisterAuthDto) {
+    return this.authService.register(RegisterAuthDto);
+  }
+  @Post('/login')
+  login(@Body(new ValidationPipe()) LoginAuthDto: LoginAuthDto) {
+    return this.authService.login(LoginAuthDto);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Post('/logout')
+  logout() {
+    return 'This action logs out the user';
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  @Post('forgot-password')
+  forgotPassword(
+    @Body(new ValidationPipe()) forgotPasswordDto: ForgotPasswordDto,
+  ) {
+    return this.authService.forgotPassword(forgotPasswordDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
+  @Get('/verify/:verificationToken')
+  verify(@Param('verificationToken') verificationToken: string) {
+    isValidUUID(verificationToken);
+    return 'This action verifies - ' + verificationToken;
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  @Get('/refresh')
+  refreshTokens() {
+    return 'This action returns tokens';
   }
 }
