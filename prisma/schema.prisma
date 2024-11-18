@@ -18,6 +18,9 @@ enum Role {
   ADMIN
   TEACHER
 }
+enum Providers {
+  GOOGLE
+  }
 
 // !TODO: add full fields to the models, it's necessary!!!!!!
 // These models aren't finished, remember!! 
@@ -32,14 +35,27 @@ model User {
   bio   String @default("none")
 
   role      Role    @default(USER)
-  isTeacher Boolean @default(false)
 
+  isVerified Boolean @default(false)
+  verificationToken String @default(uuid())
+
+  Token     Token[]
+  isBlocked Boolean   @default(false) @map("is_blocked")
   comments Comment[]
   discussions Discussion[]
   opinions Opinion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+model Token {
+  token     String   @unique
+  exp       DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  userAgent String   @map("user_agent")
+
+  @@map("tokens")
 }
 
 model News {

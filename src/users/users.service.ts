@@ -48,8 +48,11 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
-      const checking = await this.checkUserExists(createUserDto.email);
-      if (checking) {
+      let checking = false;
+      await this.checkUserExists(createUserDto.email)
+        .then(() => (checking = false))
+        .catch(() => (checking = true));
+      if (!checking) {
         throw new HttpException(
           `User with this email already exists`,
           HttpStatus.BAD_REQUEST,

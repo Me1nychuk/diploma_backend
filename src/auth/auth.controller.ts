@@ -21,8 +21,9 @@ export class AuthController {
     return this.authService.register(RegisterAuthDto);
   }
   @Post('/login')
-  login(@Body(new ValidationPipe()) LoginAuthDto: LoginAuthDto) {
-    return this.authService.login(LoginAuthDto);
+  login(@Body(new ValidationPipe()) loginAuthDto: LoginAuthDto) {
+    console.log(loginAuthDto);
+    return this.authService.login(loginAuthDto);
   }
 
   @Post('/logout')
