@@ -20,7 +20,14 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findFirst({
         where: {
-          id: id,
+          OR: [
+            {
+              id: id,
+            },
+            {
+              email: id,
+            },
+          ],
         },
         include: {
           comments: true,
@@ -41,13 +48,22 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
-      return await this.prisma.user.create({
+      const checking = await this.checkUserExists(createUserDto.email);
+      if (checking) {
+        throw new HttpException(
+          `User with this email already exists`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const newUser = await this.prisma.user.create({
         data: {
           fullname: createUserDto.fullname,
           email: createUserDto.email,
           password: hashedPassword,
         },
       });
+
+      return newUser;
     } catch (error: unknown) {
       handleError(error, 'Error creating user');
     }
