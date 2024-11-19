@@ -55,7 +55,7 @@ export class UsersService {
       if (!checking) {
         throw new HttpException(
           `User with this email already exists`,
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.CONFLICT,
         );
       }
       const newUser = await this.prisma.user.create({
