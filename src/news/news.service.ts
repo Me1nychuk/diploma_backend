@@ -2,10 +2,10 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
 import { News } from '@prisma/client';
-import { handleError } from 'src/helpers/handleError';
+import { handleError } from 'libs/common/src/helpers/handleError';
 import { PrismaService } from 'src/prisma.service';
 import { PaginatedResponse } from 'src/types/types';
-import { PrepareResponse } from 'src/helpers/prepareResponse';
+import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 
 @Injectable()
 export class NewsService {

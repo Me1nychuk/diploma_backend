@@ -9,8 +9,8 @@ import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 import { PaginatedResponse, Role } from 'src/types/types';
-import { PrepareResponse } from 'src/helpers/prepareResponse';
-import { handleError } from 'src/helpers/handleError';
+import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
+import { handleError } from 'libs/common/src/helpers/handleError';
 
 @Injectable()
 export class UsersService {

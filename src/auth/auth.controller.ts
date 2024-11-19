@@ -13,11 +13,12 @@ import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { ForgotPasswordDto } from './dto/forgot-password-dto';
-import { isValidUUID } from 'src/helpers/isValidUUID';
+import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { Tokens } from './interfaces';
 import { Response } from 'express';
-import { handleError } from 'src/helpers/handleError';
+import { handleError } from 'libs/common/src/helpers/handleError';
 import { ConfigService } from '@nestjs/config';
+import { Cookie } from 'libs/common/src/decorators/cookies.decorator';
 
 const REFRESH_TOKEN = 'refreshToken';
 
@@ -57,15 +58,23 @@ export class AuthController {
     return this.authService.forgotPassword(forgotPasswordDto);
   }
 
+  @Get('/refresh-tokens')
+  async refreshTokens(
+    @Cookie(REFRESH_TOKEN) refreshToken: string,
+    @Res() res: Response,
+  ) {
+    if (!refreshToken) {
+      throw new HttpException(`Unauthorized`, HttpStatus.UNAUTHORIZED);
+    }
+    const tokens = await this.authService.refreshTokens(refreshToken);
+
+    this.setRefreshToken(tokens, res);
+  }
+
   @Get('/verify/:verificationToken')
   verify(@Param('verificationToken') verificationToken: string) {
     isValidUUID(verificationToken);
     return 'This action verifies - ' + verificationToken;
-  }
-
-  @Get('/refresh')
-  refreshTokens() {
-    return 'This action returns tokens';
   }
 
   private setRefreshToken(tokens: Tokens, res: Response) {
@@ -80,6 +89,8 @@ export class AuthController {
         this.configService.get('NODE_ENV', 'development') === 'production',
       path: '/',
     });
-    res.status(HttpStatus.CREATED).json(tokens);
+    res.status(HttpStatus.CREATED).json({
+      accessToken: tokens.accessToken,
+    });
   }
 }

@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { handleError } from 'src/helpers/handleError';
+import { handleError } from 'libs/common/src/helpers/handleError';
 import { PrismaService } from 'src/prisma.service';
 import { Comment, News, User } from '@prisma/client';
-import { isValidUUID } from 'src/helpers/isValidUUID';
-import { PrepareResponse } from 'src/helpers/prepareResponse';
+import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
+import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 import { PaginatedResponse } from 'src/types/types';
 
 @Injectable()

@@ -12,7 +12,7 @@ import {
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { isValidUUID } from 'src/helpers/isValidUUID';
+import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 
 @Controller('comments')
 export class CommentsController {

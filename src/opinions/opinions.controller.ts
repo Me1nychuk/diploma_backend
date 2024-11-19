@@ -12,7 +12,7 @@ import {
 import { OpinionsService } from './opinions.service';
 import { CreateOpinionDto } from './dto/create-opinion.dto';
 import { UpdateOpinionDto } from './dto/update-opinion.dto';
-import { isValidUUID } from 'src/helpers/isValidUUID';
+import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { Opinion } from '@prisma/client';
 import { PaginatedResponse } from 'src/types/types';
 

@@ -4,7 +4,7 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 import { ForgotPasswordDto } from './dto/forgot-password-dto';
 import { UsersService } from 'src/users/users.service';
 import { Tokens } from './interfaces';
-import { handleError } from 'src/helpers/handleError';
+import { handleError } from 'libs/common/src/helpers/handleError';
 import * as bcrypt from 'bcrypt';
 import { Token, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
@@ -33,6 +33,22 @@ export class AuthService {
       },
     });
   }
+  private async generateTokens(user: User): Promise<Tokens> {
+    const accessToken =
+      'Bearer ' +
+      this.jwtService.sign({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        fullname: user.fullname,
+        isVerified: user.isVerified,
+        isBlocked: user.isBlocked,
+      });
+
+    const refreshToken = await this.getRefreshToken(user.id);
+
+    return { accessToken, refreshToken };
+  }
 
   async login(LoginAuthDto: LoginAuthDto): Promise<Tokens | null> {
     try {
@@ -47,21 +63,7 @@ export class AuthService {
           HttpStatus.UNAUTHORIZED,
         );
       }
-
-      const accessToken =
-        'Bearer ' +
-        this.jwtService.sign({
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          fullname: user.fullname,
-          isVerified: user.isVerified,
-          isBlocked: user.isBlocked,
-        });
-
-      const refreshToken = await this.getRefreshToken(user.id);
-
-      return { accessToken, refreshToken };
+      return await this.generateTokens(user);
     } catch (error: unknown) {
       handleError(error, 'Login failed');
     }
@@ -72,5 +74,22 @@ export class AuthService {
   async verify(verificationToken: string) {
     return verificationToken;
   }
-  async refreshTokens() {}
+  async refreshTokens(refreshToken: string) {
+    try {
+      const tokenCheck = await this.prismaService.token.findFirst({
+        where: { token: refreshToken },
+      });
+      if (!tokenCheck) {
+        throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+      }
+      const token = await this.prismaService.token.delete({
+        where: { token: refreshToken },
+      });
+      const user = await this.usersService.findOne(token.userId);
+
+      return await this.generateTokens(user);
+    } catch (error) {
+      handleError(error, 'Error refreshing tokens');
+    }
+  }
 }

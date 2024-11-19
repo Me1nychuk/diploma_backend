@@ -12,7 +12,7 @@ import {
 import { DiscussionsService } from './discussions.service';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateDiscussionDto } from './dto/update-discussion.dto';
-import { isValidUUID } from 'src/helpers/isValidUUID';
+import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { PaginatedResponse } from 'src/types/types';
 import { Discussion } from '@prisma/client';
 

@@ -3,8 +3,8 @@ import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateDiscussionDto } from './dto/update-discussion.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Discussion } from '@prisma/client';
-import { handleError } from 'src/helpers/handleError';
-import { PrepareResponse } from 'src/helpers/prepareResponse';
+import { handleError } from 'libs/common/src/helpers/handleError';
+import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 import { PaginatedResponse } from 'src/types/types';
 
 @Injectable()

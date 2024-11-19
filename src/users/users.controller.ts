@@ -12,7 +12,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { isValidUUID } from 'src/helpers/isValidUUID';
+import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { User } from '@prisma/client';
 import { PaginatedResponse } from 'src/types/types';
 

@@ -3,9 +3,9 @@ import { CreateOpinionDto } from './dto/create-opinion.dto';
 import { UpdateOpinionDto } from './dto/update-opinion.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Opinion } from '@prisma/client';
-import { handleError } from 'src/helpers/handleError';
-import { isValidUUID } from 'src/helpers/isValidUUID';
-import { PrepareResponse } from 'src/helpers/prepareResponse';
+import { handleError } from 'libs/common/src/helpers/handleError';
+import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
+import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 import { PaginatedResponse } from 'src/types/types';
 
 @Injectable()
