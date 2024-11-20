@@ -9,6 +9,8 @@ import {
   HttpStatus,
   Res,
   UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
@@ -33,9 +35,10 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Post('/register')
-  register(@Body(new ValidationPipe()) RegisterAuthDto: RegisterAuthDto) {
-    return this.authService.register(RegisterAuthDto);
+  async register(@Body(new ValidationPipe()) RegisterAuthDto: RegisterAuthDto) {
+    return new UserResponse(await this.authService.register(RegisterAuthDto));
   }
   @Post('/login')
   async login(
