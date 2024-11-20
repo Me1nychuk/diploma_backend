@@ -8,6 +8,9 @@ import {
   Delete,
   Query,
   ValidationPipe,
+  UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,44 +18,64 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { User } from '@prisma/client';
 import { PaginatedResponse } from 'src/types/types';
+import { Public } from 'libs/common/src/decorators';
+import { AuthGuard } from '@nestjs/passport';
+import { UserResponse } from './responses';
 
+@Public()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Post()
-  create(
+  @UseGuards(AuthGuard('jwt'))
+  async create(
     @Body(new ValidationPipe()) createUserDto: CreateUserDto,
-  ): Promise<User | null> {
-    return this.usersService.create(createUserDto);
+  ): Promise<UserResponse | null> {
+    return new UserResponse(await this.usersService.create(createUserDto));
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  findAll(
+  async findAll(
     @Query('per_page') per_page: string = '10',
     @Query('page') page: string = '1',
-  ): Promise<PaginatedResponse<User> | null> {
-    return this.usersService.findAll(per_page, page);
+  ): Promise<PaginatedResponse<UserResponse> | null> {
+    const users = await this.usersService.findAll(per_page, page);
+    return {
+      data: users.data.map((user) => new UserResponse(user)),
+      totalQuantity: users.totalQuantity,
+      totalPages: users.totalPages,
+      page: Number(page),
+    };
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<User | null> {
+  async findOne(@Param('id') id: string): Promise<User | null> {
     isValidUUID(id);
-    return this.usersService.findOne(id);
+    return new UserResponse(await this.usersService.findOne(id));
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Patch(':id')
-  update(
+  @UseGuards(AuthGuard('jwt'))
+  // add logic
+  async update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
-  ): Promise<User | null> {
+  ): Promise<UserResponse | null> {
     isValidUUID(id);
-    return this.usersService.update(id, updateUserDto);
+    return new UserResponse(await this.usersService.update(id, updateUserDto));
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<User | null> {
+  @UseGuards(AuthGuard('jwt'))
+  // add logic
+  async remove(@Param('id') id: string): Promise<UserResponse | null> {
     isValidUUID(id);
-    return this.usersService.remove(id);
+    return new UserResponse(await this.usersService.remove(id));
   }
 }

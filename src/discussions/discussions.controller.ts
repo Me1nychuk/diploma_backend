@@ -8,6 +8,7 @@ import {
   Delete,
   ValidationPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { DiscussionsService } from './discussions.service';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
@@ -15,12 +16,16 @@ import { UpdateDiscussionDto } from './dto/update-discussion.dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { PaginatedResponse } from 'src/types/types';
 import { Discussion } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
+import { Public } from 'libs/common/src/decorators';
 
+@Public()
 @Controller('discussions')
 export class DiscussionsController {
   constructor(private readonly discussionsService: DiscussionsService) {}
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
   create(
     @Body(new ValidationPipe()) createDiscussionDto: CreateDiscussionDto,
   ): Promise<Discussion | null> {
@@ -44,6 +49,8 @@ export class DiscussionsController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
+  // add logic
   update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateDiscussionDto: UpdateDiscussionDto,
@@ -53,6 +60,8 @@ export class DiscussionsController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'))
+  // add logic
   remove(@Param('id') id: string): Promise<Discussion | null> {
     isValidUUID(id);
     return this.discussionsService.remove(id);

@@ -8,6 +8,7 @@ import {
   HttpException,
   HttpStatus,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
@@ -19,10 +20,12 @@ import { Response } from 'express';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from 'libs/common/src/decorators/cookies.decorator';
-import { UserAgent } from 'libs/common/src/decorators';
+import { Public, UserAgent } from 'libs/common/src/decorators';
+import { AuthGuard } from '@nestjs/passport';
 
 const REFRESH_TOKEN = 'refreshToken';
 
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -49,6 +52,7 @@ export class AuthController {
   }
 
   @Post('/logout')
+  @UseGuards(AuthGuard('jwt'))
   logout() {
     return 'This action logs out the user';
   }
@@ -61,6 +65,7 @@ export class AuthController {
   }
 
   @Get('/refresh-tokens')
+  @UseGuards(AuthGuard('jwt'))
   async refreshTokens(
     @Cookie(REFRESH_TOKEN) refreshToken: string,
     @Res() res: Response,

@@ -8,17 +8,22 @@ import {
   Delete,
   ValidationPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
+import { AuthGuard } from '@nestjs/passport';
+import { Public } from 'libs/common/src/decorators';
 
+@Public()
 @Controller('comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
   create(@Body(new ValidationPipe()) createCommentDto: CreateCommentDto) {
     return this.commentsService.create(createCommentDto);
   }
@@ -38,6 +43,8 @@ export class CommentsController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
+  // add logic
   update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateCommentDto: UpdateCommentDto,
@@ -47,6 +54,8 @@ export class CommentsController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'))
+  // add logic
   remove(@Param('id') id: string) {
     isValidUUID(id);
     return this.commentsService.remove(id);

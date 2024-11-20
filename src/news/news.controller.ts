@@ -8,6 +8,7 @@ import {
   Delete,
   ValidationPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
@@ -15,12 +16,16 @@ import { UpdateNewsDto } from './dto/update-news.dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { News } from '@prisma/client';
 import { PaginatedResponse } from 'src/types/types';
+import { Public } from 'libs/common/src/decorators';
+import { AuthGuard } from '@nestjs/passport';
 
+@Public()
 @Controller('news')
 export class NewsController {
   constructor(private readonly newsService: NewsService) {}
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
   create(
     @Body(new ValidationPipe()) createNewsDto: CreateNewsDto,
   ): Promise<News | null> {
@@ -44,6 +49,8 @@ export class NewsController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
+  // add logic
   update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateNewsDto: UpdateNewsDto,
@@ -53,6 +60,8 @@ export class NewsController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'))
+  // add logic
   remove(@Param('id') id: string): Promise<News | null> {
     isValidUUID(id);
     return this.newsService.remove(id);
