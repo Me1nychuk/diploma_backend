@@ -23,17 +23,31 @@ export class AuthService {
     return await this.usersService.create(RegisterAuthDto);
   }
 
-  private async getRefreshToken(userId: string): Promise<Token> {
-    return await this.prismaService.token.create({
-      data: {
+  private async getRefreshToken(userId: string, agent: string): Promise<Token> {
+    const _token = await this.prismaService.token.findFirst({
+      where: {
+        userId: userId,
+        userAgent: agent,
+      },
+    });
+    const token = _token?.token ? _token.token : '';
+    return await this.prismaService.token.upsert({
+      where: {
+        token,
+      },
+      update: {
+        token: v4(),
+        exp: add(new Date(), { months: 2 }),
+      },
+      create: {
         token: v4(),
         exp: add(new Date(), { months: 2 }),
         userId,
-        userAgent: 'test',
+        userAgent: agent,
       },
     });
   }
-  private async generateTokens(user: User): Promise<Tokens> {
+  private async generateTokens(user: User, agent: string): Promise<Tokens> {
     const accessToken =
       'Bearer ' +
       this.jwtService.sign({
@@ -45,12 +59,15 @@ export class AuthService {
         isBlocked: user.isBlocked,
       });
 
-    const refreshToken = await this.getRefreshToken(user.id);
+    const refreshToken = await this.getRefreshToken(user.id, agent);
 
     return { accessToken, refreshToken };
   }
 
-  async login(LoginAuthDto: LoginAuthDto): Promise<Tokens | null> {
+  async login(
+    LoginAuthDto: LoginAuthDto,
+    agent: string,
+  ): Promise<Tokens | null> {
     try {
       let user: User | null = null;
       await this.usersService
@@ -63,7 +80,7 @@ export class AuthService {
           HttpStatus.UNAUTHORIZED,
         );
       }
-      return await this.generateTokens(user);
+      return await this.generateTokens(user, agent);
     } catch (error: unknown) {
       handleError(error, 'Login failed');
     }
@@ -74,20 +91,27 @@ export class AuthService {
   async verify(verificationToken: string) {
     return verificationToken;
   }
-  async refreshTokens(refreshToken: string) {
+  async refreshTokens(refreshToken: string, agent: string) {
     try {
-      const tokenCheck = await this.prismaService.token.findFirst({
+      const token = await this.prismaService.token.findFirst({
         where: { token: refreshToken },
       });
-      if (!tokenCheck) {
+
+      if (!token) {
         throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
       }
-      const token = await this.prismaService.token.delete({
+
+      await this.prismaService.token.delete({
         where: { token: refreshToken },
       });
+
+      if (new Date(token.exp) < new Date()) {
+        throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+      }
+
       const user = await this.usersService.findOne(token.userId);
 
-      return await this.generateTokens(user);
+      return await this.generateTokens(user, agent);
     } catch (error) {
       handleError(error, 'Error refreshing tokens');
     }

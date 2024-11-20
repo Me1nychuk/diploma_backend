@@ -19,6 +19,7 @@ import { Response } from 'express';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from 'libs/common/src/decorators/cookies.decorator';
+import { UserAgent } from 'libs/common/src/decorators';
 
 const REFRESH_TOKEN = 'refreshToken';
 
@@ -37,9 +38,10 @@ export class AuthController {
   async login(
     @Body(new ValidationPipe()) loginAuthDto: LoginAuthDto,
     @Res() res: Response,
+    @UserAgent() agent: string,
   ) {
     try {
-      const tokens = await this.authService.login(loginAuthDto);
+      const tokens = await this.authService.login(loginAuthDto, agent);
       this.setRefreshToken(tokens, res);
     } catch (error) {
       handleError(error);
@@ -62,11 +64,12 @@ export class AuthController {
   async refreshTokens(
     @Cookie(REFRESH_TOKEN) refreshToken: string,
     @Res() res: Response,
+    @UserAgent() agent: string,
   ) {
     if (!refreshToken) {
       throw new HttpException(`Unauthorized`, HttpStatus.UNAUTHORIZED);
     }
-    const tokens = await this.authService.refreshTokens(refreshToken);
+    const tokens = await this.authService.refreshTokens(refreshToken, agent);
 
     this.setRefreshToken(tokens, res);
   }
