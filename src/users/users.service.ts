@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { PaginatedResponse, Role } from 'src/types/types';
 import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 import { handleError } from 'libs/common/src/helpers/handleError';
+import { JWTPayload } from 'src/auth/interfaces';
 
 @Injectable()
 export class UsersService {
@@ -142,9 +143,15 @@ export class UsersService {
     }
   }
 
-  async remove(id: string): Promise<User | null> {
+  async remove(id: string, currentUser: JWTPayload): Promise<User | null> {
     try {
       await this.checkUserExists(id);
+      if (id !== currentUser.id && currentUser.role !== Role.ADMIN) {
+        throw new HttpException(
+          `You don't have permission to delete this user`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
       const user = await this.prisma.user.delete({
         where: {
           id: id,

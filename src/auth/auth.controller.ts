@@ -24,6 +24,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cookie } from 'libs/common/src/decorators/cookies.decorator';
 import { Public, UserAgent } from 'libs/common/src/decorators';
 import { AuthGuard } from '@nestjs/passport';
+import { UserResponse } from 'src/users/responses';
 
 const REFRESH_TOKEN = 'refreshToken';
 

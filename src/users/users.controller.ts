@@ -18,9 +18,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { User } from '@prisma/client';
 import { PaginatedResponse } from 'src/types/types';
-import { Public } from 'libs/common/src/decorators';
+import { CurrentUser, Public } from 'libs/common/src/decorators';
 import { AuthGuard } from '@nestjs/passport';
 import { UserResponse } from './responses';
+import { JWTPayload } from 'src/auth/interfaces';
 
 @Public()
 @Controller('users')
@@ -74,8 +75,11 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   // add logic
-  async remove(@Param('id') id: string): Promise<UserResponse | null> {
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JWTPayload,
+  ): Promise<UserResponse | null> {
     isValidUUID(id);
-    return new UserResponse(await this.usersService.remove(id));
+    return new UserResponse(await this.usersService.remove(id, currentUser));
   }
 }
