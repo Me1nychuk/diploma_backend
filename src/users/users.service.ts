@@ -17,16 +17,17 @@ import { JWTPayload } from 'src/auth/interfaces';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async checkUserExists(id: string): Promise<User | null> {
+  async findOne(idOrEmail: string): Promise<User | null> {
     try {
+      console.log('Finding...');
       const user = await this.prisma.user.findFirst({
         where: {
           OR: [
             {
-              id: id,
+              id: idOrEmail,
             },
             {
-              email: id,
+              email: idOrEmail,
             },
           ],
         },
@@ -43,14 +44,14 @@ export class UsersService {
 
       return user;
     } catch (error: unknown) {
-      handleError(error, 'Error checking if user exists');
+      handleError(error, 'Error getting if user exists');
     }
   }
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
       let checking = false;
-      await this.checkUserExists(createUserDto.email)
+      await this.findOne(createUserDto.email)
         .then(() => (checking = false))
         .catch(() => (checking = true));
       if (!checking) {
@@ -103,25 +104,9 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string): Promise<User | null> {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: {
-          id: id,
-        },
-      });
-      if (!user) {
-        throw new HttpException(`User not found`, HttpStatus.NOT_FOUND);
-      }
-      return user;
-    } catch (error: unknown) {
-      handleError(error, 'Error getting user');
-    }
-  }
-
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     try {
-      await this.checkUserExists(id);
+      await this.findOne(id);
 
       const user = await this.prisma.user.update({
         where: {
@@ -145,7 +130,7 @@ export class UsersService {
 
   async remove(id: string, currentUser: JWTPayload): Promise<User | null> {
     try {
-      await this.checkUserExists(id);
+      await this.findOne(id);
       if (id !== currentUser.id && currentUser.role !== Role.ADMIN) {
         throw new HttpException(
           `You don't have permission to delete this user`,

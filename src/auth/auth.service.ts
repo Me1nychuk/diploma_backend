@@ -71,7 +71,7 @@ export class AuthService {
     try {
       let user: User | null = null;
       await this.usersService
-        .checkUserExists(LoginAuthDto.email)
+        .findOne(LoginAuthDto.email)
         .then((u) => (user = u))
         .catch(() => null);
       if (!user || !bcrypt.compareSync(LoginAuthDto.password, user.password)) {
