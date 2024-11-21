@@ -57,8 +57,21 @@ export class AuthController {
 
   @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
-  logout() {
-    return 'This action logs out the user';
+  async logout(
+    @Cookie(REFRESH_TOKEN) refreshToken: string,
+    @Res() res: Response,
+  ) {
+    if (!refreshToken) {
+      res.sendStatus(HttpStatus.OK);
+      return;
+    }
+    await this.authService.logout(refreshToken);
+    res.cookie(REFRESH_TOKEN, '', {
+      httpOnly: true,
+      secure: true,
+      expires: new Date(),
+    });
+    res.sendStatus(HttpStatus.OK);
   }
 
   @Post('forgot-password')

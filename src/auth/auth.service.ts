@@ -116,4 +116,14 @@ export class AuthService {
       handleError(error, 'Error refreshing tokens');
     }
   }
+
+  async logout(token: string) {
+    try {
+      await this.prismaService.token.delete({
+        where: { token },
+      });
+    } catch (error) {
+      handleError(error, 'Error logging out');
+    }
+  }
 }
