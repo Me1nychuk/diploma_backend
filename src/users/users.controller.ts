@@ -16,12 +16,13 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { PaginatedResponse } from 'src/types/types';
-import { CurrentUser, Public } from 'libs/common/src/decorators';
+import { CurrentUser, Public, Roles } from 'libs/common/src/decorators';
 import { AuthGuard } from '@nestjs/passport';
 import { UserResponse } from './responses';
 import { JWTPayload } from 'src/auth/interfaces';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Public()
 @Controller('users')
@@ -81,5 +82,12 @@ export class UsersController {
   ): Promise<UserResponse | null> {
     isValidUUID(id);
     return new UserResponse(await this.usersService.remove(id, currentUser));
+  }
+
+  @Get()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  me(@CurrentUser() currentUser: JWTPayload) {
+    return currentUser;
   }
 }
