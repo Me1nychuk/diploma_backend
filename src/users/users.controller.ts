@@ -54,15 +54,16 @@ export class UsersController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User | null> {
     isValidUUID(id);
     return new UserResponse(await this.usersService.findOne(id));
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(ClassSerializerInterceptor)
   // add logic
   async update(
     @Param('id') id: string,

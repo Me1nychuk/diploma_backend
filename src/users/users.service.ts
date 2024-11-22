@@ -1,4 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma.service';
 
@@ -12,36 +13,55 @@ import { PaginatedResponse, Role } from 'src/types/types';
 import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import { JWTPayload } from 'src/auth/interfaces';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { convertToSecondsUtil } from 'libs/common/src/utils';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly configService: ConfigService,
+  ) {}
 
-  async findOne(idOrEmail: string): Promise<User | null> {
+  async findOne(idOrEmail: string, isReset = false): Promise<User | null> {
     try {
-      console.log('Finding...');
-      const user = await this.prisma.user.findFirst({
-        where: {
-          OR: [
-            {
-              id: idOrEmail,
-            },
-            {
-              email: idOrEmail,
-            },
-          ],
-        },
-        include: {
-          comments: true,
-          discussions: true,
-          opinions: true,
-        },
-      });
-
-      if (!user) {
-        throw new HttpException(`User not found`, HttpStatus.NOT_FOUND);
+      if (isReset) {
+        await this.cacheManager.del(idOrEmail);
       }
+      const user = await this.cacheManager.get<User>(idOrEmail);
+      if (!user) {
+        const newUser = await this.prisma.user.findFirst({
+          where: {
+            OR: [
+              {
+                id: idOrEmail,
+              },
+              {
+                email: idOrEmail,
+              },
+            ],
+          },
+          include: {
+            comments: true,
+            discussions: true,
+            opinions: true,
+          },
+        });
 
+        if (!newUser) {
+          throw new HttpException(`User not found`, HttpStatus.NOT_FOUND);
+        }
+
+        await this.cacheManager.set(
+          idOrEmail,
+          newUser,
+          convertToSecondsUtil(this.configService.get('JWT_EXP')),
+        );
+        await this.cacheManager.get<User>(idOrEmail);
+
+        return newUser;
+      }
       return user;
     } catch (error: unknown) {
       handleError(error, 'Error getting if user exists');
@@ -137,6 +157,11 @@ export class UsersService {
           HttpStatus.FORBIDDEN,
         );
       }
+      Promise.all([
+        await this.cacheManager.del(id),
+        await this.cacheManager.del(currentUser.email),
+      ]);
+
       const user = await this.prisma.user.delete({
         where: {
           id: id,

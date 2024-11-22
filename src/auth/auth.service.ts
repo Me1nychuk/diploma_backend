@@ -71,7 +71,7 @@ export class AuthService {
     try {
       let user: User | null = null;
       await this.usersService
-        .findOne(LoginAuthDto.email)
+        .findOne(LoginAuthDto.email, true)
         .then((u) => (user = u))
         .catch(() => null);
       if (!user || !bcrypt.compareSync(LoginAuthDto.password, user.password)) {
@@ -109,7 +109,7 @@ export class AuthService {
         throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
       }
 
-      const user = await this.usersService.findOne(token.userId);
+      const user = await this.usersService.findOne(token.userId, true);
 
       return await this.generateTokens(user, agent);
     } catch (error) {
