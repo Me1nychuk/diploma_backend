@@ -80,6 +80,12 @@ export class AuthService {
           HttpStatus.UNAUTHORIZED,
         );
       }
+      if (!user.isVerified) {
+        throw new HttpException(
+          `User with this email is not verified`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
       return await this.generateTokens(user, agent);
     } catch (error: unknown) {
       handleError(error, 'Login failed');
