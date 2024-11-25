@@ -1,47 +1,71 @@
 import { PrismaService } from '../src/prisma.service';
-import { users, news, comments } from './constants';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaService();
 
-// !TODO: add more basic data, and more variables - with normal relations and don't forget to delete old data.
 async function up() {
   // Створення користувачів
-  const createdUsers = await prisma.user.createMany({
-    data: users,
+  const adminUser = await prisma.user.create({
+    data: {
+      fullname: 'Test Administrator',
+      email: 'admin@example.com',
+      password: await bcrypt.hash('password', 10),
+      role: 'ADMIN',
+      isVerified: true,
+    },
+  });
+
+  const normalUser = await prisma.user.create({
+    data: {
+      fullname: 'Test User',
+      email: 'user@example.com',
+      password: await bcrypt.hash('password', 10),
+      isVerified: true,
+    },
   });
 
   // Створення новин
-  const createdNews = await prisma.news.createMany({
-    data: news,
+  const news1 = await prisma.news.create({
+    data: {
+      title: 'Test news 1',
+      content: 'Test news 1 content',
+    },
   });
-  // отримання користвачів
-  const newUsers = await prisma.user.findMany();
-  // отримання новин
-  const newNews = await prisma.news.findMany();
+
+  const news2 = await prisma.news.create({
+    data: {
+      title: 'Test news 2',
+      content: 'Test news 2 content',
+    },
+  });
+
   // Створення коментарів
-  const createdComments = await prisma.comment.createMany({
-    data: [
-      {
-        authorId: newUsers[0].id,
-        newsId: newNews[0].id,
-        content: 'Test comment 1',
-      },
-      {
-        authorId: newUsers[1].id,
-        newsId: newNews[0].id,
-        content: 'Test comment 2',
-      },
-    ],
+  const comment1 = await prisma.comment.create({
+    data: {
+      authorId: adminUser.id,
+      newsId: news1.id,
+      content: 'Test comment 1',
+    },
+  });
+
+  const comment2 = await prisma.comment.create({
+    data: {
+      authorId: normalUser.id,
+      newsId: news1.id,
+      content: 'Test comment 2',
+    },
   });
 
   console.log('Seed complete!');
 }
 
 async function down() {
-  // Очищення таблиць з перезапуском ідентифікаторів
-  await prisma.$executeRaw`TRUNCATE TABLE "User" RESTART IDENTITY CASCADE`;
-  await prisma.$executeRaw`TRUNCATE TABLE "News" RESTART IDENTITY CASCADE`;
-  await prisma.$executeRaw`TRUNCATE TABLE "Comment" RESTART IDENTITY CASCADE`;
+  // Очищення таблиць з перезапуском ідентифікаторів і каскадними операціями
+  await prisma.$executeRaw`TRUNCATE TABLE "opinions" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "discussions" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "comments" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "news" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "users" RESTART IDENTITY CASCADE`;
 
   console.log('Database reset complete!');
 }

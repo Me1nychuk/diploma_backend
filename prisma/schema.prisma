@@ -18,7 +18,7 @@ enum Role {
   ADMIN
   TEACHER
 }
-enum Providers {
+enum Provider  {
   GOOGLE
   }
 
@@ -30,6 +30,8 @@ model User {
   fullname String
   email    String @unique
   password String
+
+  provider  Provider?
 
   phone String @default("none")
   bio   String @default("none")
@@ -47,6 +49,7 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+   @@map("users")
 }
 model Token {
   token     String   @unique
@@ -64,10 +67,11 @@ model News {
   content  String
   imageUrl String[] @default([])
 
-  comments Comment[]
+  comments Comment[] 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+   @@map("news")
 }
 
 model Comment {
@@ -75,11 +79,14 @@ model Comment {
   content String
 
   authorId String
-  author   User   @relation(fields: [authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   newsId   String
-  news     News   @relation(fields: [newsId], references: [id])
+  news     News   @relation(fields: [newsId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+   @@map("comments")
+
 }
 
 model Discussion {
@@ -96,6 +103,7 @@ model Discussion {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@map("discussions")
 }
 
 model Opinion {
@@ -103,11 +111,12 @@ model Opinion {
   content String
 
   authorId String
-  author   User   @relation(fields: [authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id ],onDelete: Cascade)
   discussionId String
-  discussion Discussion @relation(fields: [discussionId], references: [id])
+  discussion Discussion @relation(fields: [discussionId], references: [id],onDelete: Cascade)
 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@map("opinions")
 }
