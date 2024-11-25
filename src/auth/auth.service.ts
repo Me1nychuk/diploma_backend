@@ -80,7 +80,7 @@ export class AuthService {
           HttpStatus.UNAUTHORIZED,
         );
       }
-      if (!user.isVerified) {
+      if (!user.isVerified || user.isBlocked) {
         throw new HttpException(
           `User with this email is not verified`,
           HttpStatus.FORBIDDEN,
