@@ -22,10 +22,11 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const { user } = context.switchToHttp().getRequest();
-    const hasRole = requiredRoles.some((role) => role === user.role);
+
+    const hasRole = requiredRoles.some((role) => role === user.role); // Check if the user's role is in the requiredRoles array.
     if (!hasRole) {
       throw new HttpException(
-        'Access denied: insufficient permissions.',
+        'You do not have access to this resource',
         HttpStatus.FORBIDDEN,
       );
     }

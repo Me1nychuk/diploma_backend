@@ -52,6 +52,12 @@ export class UsersController {
       page: Number(page),
     };
   }
+  @Get('/me')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  me(@CurrentUser() currentUser: JWTPayload) {
+    return currentUser;
+  }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(AuthGuard('jwt'))
@@ -64,31 +70,25 @@ export class UsersController {
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(ClassSerializerInterceptor)
-  // add logic
   async update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
+    @CurrentUser() currentUser: JWTPayload,
   ): Promise<UserResponse | null> {
     isValidUUID(id);
-    return new UserResponse(await this.usersService.update(id, updateUserDto));
+    return new UserResponse(
+      await this.usersService.update(id, updateUserDto, currentUser),
+    );
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  // add logic
   async remove(
     @Param('id') id: string,
     @CurrentUser() currentUser: JWTPayload,
   ): Promise<UserResponse | null> {
     isValidUUID(id);
     return new UserResponse(await this.usersService.remove(id, currentUser));
-  }
-
-  @Get()
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  me(@CurrentUser() currentUser: JWTPayload) {
-    return currentUser;
   }
 }

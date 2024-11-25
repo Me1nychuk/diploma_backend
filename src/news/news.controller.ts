@@ -14,10 +14,12 @@ import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
-import { News } from '@prisma/client';
+import { News, Role } from '@prisma/client';
 import { PaginatedResponse } from 'src/types/types';
-import { Public } from 'libs/common/src/decorators';
+import { Public, Roles } from 'libs/common/src/decorators';
 import { AuthGuard } from '@nestjs/passport';
+import {} from 'src/auth/interfaces';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Public()
 @Controller('news')
@@ -25,7 +27,8 @@ export class NewsController {
   constructor(private readonly newsService: NewsService) {}
 
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
   create(
     @Body(new ValidationPipe()) createNewsDto: CreateNewsDto,
   ): Promise<News | null> {
@@ -49,21 +52,23 @@ export class NewsController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard('jwt'))
-  // add logic
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
   update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateNewsDto: UpdateNewsDto,
   ): Promise<News | null> {
     isValidUUID(id);
+
     return this.newsService.update(id, updateNewsDto);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
-  // add logic
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string): Promise<News | null> {
     isValidUUID(id);
+
     return this.newsService.remove(id);
   }
 }

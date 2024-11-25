@@ -1,4 +1,4 @@
-import { Discussion, Opinion, Role, User } from '@prisma/client';
+import { Discussion, Opinion, Role, User, Provider } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 
 export class UserResponse implements User {
@@ -15,7 +15,7 @@ export class UserResponse implements User {
 
   @Exclude()
   verificationToken: string;
-
+  provider: Provider;
   isVerified: boolean;
   isBlocked: boolean;
   comments: Comment[];

@@ -124,10 +124,19 @@ export class UsersService {
     }
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    currentUser: JWTPayload,
+  ): Promise<User | null> {
     try {
       await this.findOne(id);
-
+      if (id !== currentUser.id && currentUser.role !== Role.ADMIN) {
+        throw new HttpException(
+          `You don't have permission to update this user`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
       const user = await this.prisma.user.update({
         where: {
           id: id,
