@@ -15,7 +15,8 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { AuthGuard } from '@nestjs/passport';
-import { Public } from 'libs/common/src/decorators';
+import { Public, CurrentUser } from 'libs/common/src/decorators';
+import { JWTPayload } from 'src/auth/interfaces';
 
 @Public()
 @Controller('comments')
@@ -24,16 +25,20 @@ export class CommentsController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  create(@Body(new ValidationPipe()) createCommentDto: CreateCommentDto) {
-    return this.commentsService.create(createCommentDto);
+  create(
+    @Body(new ValidationPipe()) createCommentDto: CreateCommentDto,
+    @CurrentUser() currentUser: JWTPayload,
+  ) {
+    return this.commentsService.create(createCommentDto, currentUser);
   }
 
   @Get()
   findAll(
     @Query('per_page') per_page: string = '10',
     @Query('page') page: string = '1',
+    @Query('news-id') newsId: string,
   ) {
-    return this.commentsService.findAll(per_page, page);
+    return this.commentsService.findAll(per_page, page, newsId);
   }
 
   @Get(':id')
@@ -44,20 +49,19 @@ export class CommentsController {
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  // add logic
   update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateCommentDto: UpdateCommentDto,
+    @CurrentUser() currentUser: JWTPayload,
   ) {
     isValidUUID(id);
-    return this.commentsService.update(id, updateCommentDto);
+    return this.commentsService.update(id, updateCommentDto, currentUser);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  // add logic
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @CurrentUser() currentUser: JWTPayload) {
     isValidUUID(id);
-    return this.commentsService.remove(id);
+    return this.commentsService.remove(id, currentUser);
   }
 }

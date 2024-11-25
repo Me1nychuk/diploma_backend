@@ -3,32 +3,15 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import { PrismaService } from 'src/prisma.service';
-import { Comment, News, User } from '@prisma/client';
+import { Comment, News, Role, User } from '@prisma/client';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 import { PaginatedResponse } from 'src/types/types';
+import { JWTPayload } from 'src/auth/interfaces';
 
 @Injectable()
 export class CommentsService {
   constructor(private readonly prisma: PrismaService) {}
-
-  async checkAuthorExists(id: string): Promise<User | null> {
-    try {
-      isValidUUID(id);
-
-      const author = await this.prisma.user.findFirst({
-        where: {
-          id: id,
-        },
-      });
-      if (!author) {
-        throw new HttpException(`User not found`, HttpStatus.NOT_FOUND);
-      }
-      return author;
-    } catch (error) {
-      handleError(error, 'Error checking author existence');
-    }
-  }
 
   async checkNewsExists(id: string): Promise<News | null> {
     try {
@@ -69,12 +52,14 @@ export class CommentsService {
     }
   }
 
-  async create(createCommentDto: CreateCommentDto): Promise<Comment | null> {
+  async create(
+    createCommentDto: CreateCommentDto,
+    currentUser: JWTPayload,
+  ): Promise<Comment | null> {
     try {
-      await this.checkAuthorExists(createCommentDto.authorId);
       await this.checkNewsExists(createCommentDto.newsId);
       const newComment = await this.prisma.comment.create({
-        data: { ...createCommentDto },
+        data: { ...createCommentDto, authorId: currentUser.id },
         include: {
           author: true,
           news: true,
@@ -92,6 +77,7 @@ export class CommentsService {
   async findAll(
     per_page: string,
     page: string,
+    newsId: string,
   ): Promise<PaginatedResponse<Comment> | null> {
     try {
       const comments = await this.prisma.comment.findMany({
@@ -100,6 +86,9 @@ export class CommentsService {
         include: {
           author: true,
           news: true,
+        },
+        where: {
+          newsId: newsId,
         },
       });
       if (comments.length === 0) {
@@ -131,9 +120,19 @@ export class CommentsService {
   async update(
     id: string,
     updateCommentDto: UpdateCommentDto,
+    currentUser: JWTPayload,
   ): Promise<Comment | null> {
     try {
-      await this.checkCommentExists(id);
+      const comment = await this.checkCommentExists(id);
+      if (
+        comment.authorId !== currentUser.id &&
+        currentUser.role !== Role.ADMIN
+      ) {
+        throw new HttpException(
+          `You can't update this comment`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
       const updatedComment = await this.prisma.comment.update({
         where: {
           id: id,
@@ -157,9 +156,18 @@ export class CommentsService {
     }
   }
 
-  async remove(id: string): Promise<Comment | null> {
+  async remove(id: string, currentUser: JWTPayload): Promise<Comment | null> {
     try {
-      await this.checkCommentExists(id);
+      const comment = await this.checkCommentExists(id);
+      if (
+        comment.authorId !== currentUser.id &&
+        currentUser.role !== Role.ADMIN
+      ) {
+        throw new HttpException(
+          `You can't delete this comment`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
       const deletedComment = await this.prisma.comment.delete({
         where: {
           id: id,
