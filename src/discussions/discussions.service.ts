@@ -2,10 +2,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateDiscussionDto } from './dto/update-discussion.dto';
 import { PrismaService } from 'src/prisma.service';
-import { Discussion } from '@prisma/client';
+import { Discussion, Role } from '@prisma/client';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 import { PaginatedResponse } from 'src/types/types';
+import { JWTPayload } from 'src/auth/interfaces';
 
 @Injectable()
 export class DiscussionsService {
@@ -18,6 +19,7 @@ export class DiscussionsService {
         },
         include: {
           opinions: true,
+          author: true,
         },
       });
 
@@ -32,13 +34,14 @@ export class DiscussionsService {
   }
   async create(
     createDiscussionDto: CreateDiscussionDto,
+    currentUser: JWTPayload,
   ): Promise<Discussion | null> {
     try {
       const newDiscussion = await this.prisma.discussion.create({
         data: {
           title: createDiscussionDto.title,
           content: createDiscussionDto.content ?? undefined,
-          authorId: createDiscussionDto.authorId,
+          authorId: currentUser.id,
         },
       });
       if (!newDiscussion) {
@@ -70,6 +73,7 @@ export class DiscussionsService {
         },
         include: {
           opinions: true,
+          author: true,
         },
       });
       if (discussions.length === 0) {
@@ -96,6 +100,7 @@ export class DiscussionsService {
         },
         include: {
           opinions: true,
+          author: true,
         },
       });
       if (!discussion) {
@@ -110,9 +115,19 @@ export class DiscussionsService {
   async update(
     id: string,
     updateDiscussionDto: UpdateDiscussionDto,
+    currentUser: JWTPayload,
   ): Promise<Discussion | null> {
     try {
-      await this.checkDiscussionExists(id);
+      const discussion = await this.checkDiscussionExists(id);
+      if (
+        discussion.authorId !== currentUser.id &&
+        currentUser.role !== Role.ADMIN
+      ) {
+        throw new HttpException(
+          `You can't update this discussion`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
 
       const updatedDiscussion = this.prisma.discussion.update({
         where: {
@@ -133,16 +148,28 @@ export class DiscussionsService {
     }
   }
 
-  async remove(id: string): Promise<Discussion | null> {
+  async remove(
+    id: string,
+    currentUser: JWTPayload,
+  ): Promise<Discussion | null> {
     try {
-      await this.checkDiscussionExists(id);
-
+      const discussion = await this.checkDiscussionExists(id);
+      if (
+        discussion.authorId !== currentUser.id &&
+        currentUser.role !== Role.ADMIN
+      ) {
+        throw new HttpException(
+          `You can't delete this discussion`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
       const deletedDiscussion = this.prisma.discussion.delete({
         where: {
           id: id,
         },
         include: {
           opinions: true,
+          author: true,
         },
       });
       return deletedDiscussion;

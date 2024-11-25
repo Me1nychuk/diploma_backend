@@ -2,11 +2,12 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOpinionDto } from './dto/create-opinion.dto';
 import { UpdateOpinionDto } from './dto/update-opinion.dto';
 import { PrismaService } from 'src/prisma.service';
-import { Opinion } from '@prisma/client';
+import { Discussion, Opinion } from '@prisma/client';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
-import { PaginatedResponse } from 'src/types/types';
+import { PaginatedResponse, Role } from 'src/types/types';
+import { JWTPayload } from 'src/auth/interfaces';
 
 @Injectable()
 export class OpinionsService {
@@ -31,10 +32,38 @@ export class OpinionsService {
       handleError(error, 'Error checking opinion existence');
     }
   }
-  async create(createOpinionDto: CreateOpinionDto): Promise<Opinion | null> {
+  async checkDiscussionExists(id: string): Promise<Discussion | null> {
     try {
+      isValidUUID(id);
+      const discussion = await this.prisma.discussion.findFirst({
+        where: {
+          id: id,
+        },
+        include: {
+          author: true,
+        },
+      });
+      if (!discussion) {
+        throw new HttpException(`Discussion not found`, HttpStatus.NOT_FOUND);
+      }
+      return discussion;
+    } catch (error) {
+      handleError(error, 'Error checking discussion existence');
+    }
+  }
+  async create(
+    createOpinionDto: CreateOpinionDto,
+    currentUser: JWTPayload,
+  ): Promise<Opinion | null> {
+    try {
+      const discussion = await this.checkDiscussionExists(
+        createOpinionDto.discussionId,
+      );
+      if (!discussion) {
+        throw new HttpException(`Discussion not found`, HttpStatus.NOT_FOUND);
+      }
       const newOpinion = await this.prisma.opinion.create({
-        data: { ...createOpinionDto },
+        data: { ...createOpinionDto, authorId: currentUser.id },
         include: {
           author: true,
           discussion: true,
@@ -52,6 +81,7 @@ export class OpinionsService {
   async findAll(
     per_page: string,
     page: string,
+    discussionId: string,
   ): Promise<PaginatedResponse<Opinion> | null> {
     try {
       const opinions = await this.prisma.opinion.findMany({
@@ -60,6 +90,9 @@ export class OpinionsService {
         include: {
           author: true,
           discussion: true,
+        },
+        where: {
+          discussionId: discussionId,
         },
       });
       if (opinions.length === 0) {
@@ -88,9 +121,19 @@ export class OpinionsService {
   async update(
     id: string,
     updateOpinionDto: UpdateOpinionDto,
+    currentUser: JWTPayload,
   ): Promise<Opinion | null> {
     try {
-      await this.checkOpinionExists(id);
+      const opinion = await this.checkOpinionExists(id);
+      if (
+        opinion.authorId !== currentUser.id &&
+        currentUser.role !== Role.ADMIN
+      ) {
+        throw new HttpException(
+          `You can't to update this opinion`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
       const updatedOpinion = await this.prisma.opinion.update({
         where: {
           id: id,
@@ -114,9 +157,18 @@ export class OpinionsService {
     }
   }
 
-  async remove(id: string): Promise<Opinion | null> {
+  async remove(id: string, currentUser: JWTPayload): Promise<Opinion | null> {
     try {
-      await this.checkOpinionExists(id);
+      const opinion = await this.checkOpinionExists(id);
+      if (
+        opinion.authorId !== currentUser.id &&
+        currentUser.role !== Role.ADMIN
+      ) {
+        throw new HttpException(
+          `You can't to update this opinion`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
       const deletedOpinion = await this.prisma.opinion.delete({
         where: {
           id: id,

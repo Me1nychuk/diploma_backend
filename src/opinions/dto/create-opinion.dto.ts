@@ -6,9 +6,5 @@ export class CreateOpinionDto {
 
   @IsString()
   @IsNotEmpty()
-  authorId: string;
-
-  @IsString()
-  @IsNotEmpty()
   discussionId: string;
 }

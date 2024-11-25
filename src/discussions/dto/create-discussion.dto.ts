@@ -9,8 +9,4 @@ export class CreateDiscussionDto {
   @IsString()
   @IsOptional()
   content?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  authorId: string;
 }

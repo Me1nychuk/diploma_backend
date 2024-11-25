@@ -17,7 +17,8 @@ import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { PaginatedResponse } from 'src/types/types';
 import { Discussion } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
-import { Public } from 'libs/common/src/decorators';
+import { CurrentUser, Public } from 'libs/common/src/decorators';
+import { JWTPayload } from 'src/auth/interfaces';
 
 @Public()
 @Controller('discussions')
@@ -28,8 +29,9 @@ export class DiscussionsController {
   @UseGuards(AuthGuard('jwt'))
   create(
     @Body(new ValidationPipe()) createDiscussionDto: CreateDiscussionDto,
+    @CurrentUser() currentUser: JWTPayload,
   ): Promise<Discussion | null> {
-    return this.discussionsService.create(createDiscussionDto);
+    return this.discussionsService.create(createDiscussionDto, currentUser);
   }
 
   @Get()
@@ -50,20 +52,22 @@ export class DiscussionsController {
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  // add logic
   update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateDiscussionDto: UpdateDiscussionDto,
+    @CurrentUser() currentUser: JWTPayload,
   ): Promise<Discussion | null> {
     isValidUUID(id);
-    return this.discussionsService.update(id, updateDiscussionDto);
+    return this.discussionsService.update(id, updateDiscussionDto, currentUser);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  // add logic
-  remove(@Param('id') id: string): Promise<Discussion | null> {
+  remove(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JWTPayload,
+  ): Promise<Discussion | null> {
     isValidUUID(id);
-    return this.discussionsService.remove(id);
+    return this.discussionsService.remove(id, currentUser);
   }
 }
