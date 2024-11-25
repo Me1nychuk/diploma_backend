@@ -89,7 +89,25 @@ export class AuthService {
     return forgotPasswordDto;
   }
   async verify(verificationToken: string) {
-    return verificationToken;
+    try {
+      const user = await this.prismaService.user.findFirst({
+        where: {
+          verificationToken: verificationToken,
+        },
+      });
+      if (!user) {
+        throw new HttpException(
+          'User with this token not found or token does not exist',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+      await this.prismaService.user.update({
+        where: { id: user.id },
+        data: { isVerified: true, verificationToken: '' },
+      });
+    } catch (error) {
+      handleError(error, 'Error verifying token');
+    }
   }
   async refreshTokens(refreshToken: string, agent: string) {
     try {

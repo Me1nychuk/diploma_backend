@@ -97,9 +97,13 @@ export class AuthController {
   }
 
   @Get('/verify/:verificationToken')
-  verify(@Param('verificationToken') verificationToken: string) {
+  async verify(@Param('verificationToken') verificationToken: string) {
     isValidUUID(verificationToken);
-    return 'This action verifies - ' + verificationToken;
+    await this.authService.verify(verificationToken);
+    return {
+      status: 'success',
+      message: 'Verification completed successfully.',
+    };
   }
 
   private setRefreshToken(tokens: Tokens, res: Response) {
