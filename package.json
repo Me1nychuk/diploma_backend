@@ -38,6 +38,7 @@
     "@nestjs/platform-socket.io": "^10.4.7",
     "@nestjs/websockets": "^10.4.7",
     "@prisma/client": "^5.22.0",
+    "axios": "^1.7.8",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.7.6",
     "class-transformer": "^0.5.1",

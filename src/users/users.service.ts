@@ -15,6 +15,7 @@ import { handleError } from 'libs/common/src/helpers/handleError';
 import { JWTPayload } from 'src/auth/interfaces';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { convertToSecondsUtil } from 'libs/common/src/utils';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -22,6 +23,7 @@ export class UsersService {
     private readonly prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
 
   async findOne(idOrEmail: string, isReset = false): Promise<User | null> {
@@ -87,7 +89,12 @@ export class UsersService {
           password: hashedPassword,
         },
       });
-
+      await this.mailService.verify(
+        newUser.email,
+        newUser.fullname,
+        this.configService.get('HOME_URL') +
+          `api/auth/verify/${newUser.verificationToken}`,
+      );
       return newUser;
     } catch (error: unknown) {
       handleError(error, 'Error creating user');
