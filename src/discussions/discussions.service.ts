@@ -60,7 +60,9 @@ export class DiscussionsService {
     per_page: string,
     page: string,
     search: string,
-    sortType: string, // add sort logic
+    sortBy: 'title' | 'date' = 'title',
+    order: 'asc' | 'desc' = 'asc',
+    authorId: string = '',
   ): Promise<PaginatedResponse<Discussion> | null> {
     try {
       const discussions = await this.prisma.discussion.findMany({
@@ -70,16 +72,31 @@ export class DiscussionsService {
           title: {
             contains: search,
           },
+          ...(authorId && { authorId: authorId }),
+        },
+        include: {
+          opinions: true,
+          author: true,
+        },
+        orderBy: {
+          [sortBy == 'title' ? 'title' : 'createdAt']: order,
+        },
+      });
+      if (discussions.length === 0) {
+        throw new HttpException(`No discussions found`, HttpStatus.NOT_FOUND);
+      }
+      const allDiscussions = await this.prisma.discussion.findMany({
+        where: {
+          title: {
+            contains: search,
+          },
+          ...(authorId && { authorId: authorId }),
         },
         include: {
           opinions: true,
           author: true,
         },
       });
-      if (discussions.length === 0) {
-        throw new HttpException(`No discussions found`, HttpStatus.NOT_FOUND);
-      }
-      const allDiscussions = await this.prisma.discussion.findMany();
       return PrepareResponse(
         discussions,
         allDiscussions.length,

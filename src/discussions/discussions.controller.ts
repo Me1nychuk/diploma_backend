@@ -39,9 +39,18 @@ export class DiscussionsController {
     @Query('per_page') per_page: string = '10',
     @Query('page') page: string = '1',
     @Query('search') search: string = '',
-    @Query('sort') sortType: string = '',
+    @Query('sortBy') sortBy: 'title' | 'date' = 'title',
+    @Query('order') order: 'asc' | 'desc' = 'asc',
+    @Query('author-id') authorId: string = '',
   ): Promise<PaginatedResponse<Discussion> | null> {
-    return this.discussionsService.findAll(per_page, page, search, sortType);
+    return this.discussionsService.findAll(
+      per_page,
+      page,
+      search,
+      sortBy,
+      order,
+      authorId,
+    );
   }
 
   @Get(':id')

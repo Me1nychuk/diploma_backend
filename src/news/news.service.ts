@@ -73,13 +73,22 @@ export class NewsService {
           comments: true,
         },
         orderBy: {
-          [sortBy == 'title' ? 'title' : 'date']: order,
+          [sortBy == 'title' ? 'title' : 'createdAt']: order,
         },
       });
       if (news.length === 0) {
         throw new HttpException(`News not found`, HttpStatus.NOT_FOUND);
       }
-      const allNews = await this.prisma.news.findMany();
+      const allNews = await this.prisma.news.findMany({
+        where: {
+          title: {
+            contains: search,
+          },
+        },
+        include: {
+          comments: true,
+        },
+      });
       return PrepareResponse(
         news,
         allNews.length,

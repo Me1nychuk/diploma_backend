@@ -82,6 +82,8 @@ export class OpinionsService {
     per_page: string,
     page: string,
     discussionId: string,
+    order: 'asc' | 'desc' = 'asc',
+    authorId: string = '',
   ): Promise<PaginatedResponse<Opinion> | null> {
     try {
       const opinions = await this.prisma.opinion.findMany({
@@ -93,12 +95,25 @@ export class OpinionsService {
         },
         where: {
           discussionId: discussionId,
+          ...(authorId !== '' && { authorId: authorId }),
+        },
+        orderBy: {
+          createdAt: order,
         },
       });
       if (opinions.length === 0) {
         throw new HttpException(`Opinions not found`, HttpStatus.NOT_FOUND);
       }
-      const allOpinions = await this.prisma.opinion.findMany();
+      const allOpinions = await this.prisma.opinion.findMany({
+        include: {
+          author: true,
+          discussion: true,
+        },
+        where: {
+          discussionId: discussionId,
+          ...(authorId !== '' && { authorId: authorId }),
+        },
+      });
       return PrepareResponse(
         opinions,
         allOpinions.length,

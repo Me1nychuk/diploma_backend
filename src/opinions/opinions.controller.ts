@@ -39,8 +39,16 @@ export class OpinionsController {
     @Query('per_page') per_page: string = '10',
     @Query('page') page: string = '1',
     @Query('discussion-id') discussionId: string,
+    @Query('order') order: 'asc' | 'desc' = 'asc',
+    @Query('author-id') authorId: string = '',
   ): Promise<PaginatedResponse<Opinion> | null> {
-    return this.opinionsService.findAll(per_page, page, discussionId);
+    return this.opinionsService.findAll(
+      per_page,
+      page,
+      discussionId,
+      order,
+      authorId,
+    );
   }
 
   @Get(':id')
@@ -62,7 +70,6 @@ export class OpinionsController {
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  // add logic
   remove(
     @Param('id') id: string,
     @CurrentUser() currentUser: JWTPayload,

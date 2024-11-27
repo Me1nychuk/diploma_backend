@@ -78,8 +78,13 @@ export class CommentsService {
     per_page: string,
     page: string,
     newsId: string,
+    order: 'asc' | 'desc' = 'asc',
+    authorId: string = '',
   ): Promise<PaginatedResponse<Comment> | null> {
     try {
+      if (!newsId) {
+        throw new HttpException(`News id is required`, HttpStatus.BAD_REQUEST);
+      }
       const comments = await this.prisma.comment.findMany({
         skip: Number(per_page) * (Number(page) - 1),
         take: Number(per_page),
@@ -89,6 +94,10 @@ export class CommentsService {
         },
         where: {
           newsId: newsId,
+          ...(authorId && { authorId: authorId }),
+        },
+        orderBy: {
+          ['createdAt']: order,
         },
       });
       if (comments.length === 0) {
@@ -97,7 +106,16 @@ export class CommentsService {
           HttpStatus.NOT_FOUND,
         );
       }
-      const allComments = await this.prisma.comment.findMany();
+      const allComments = await this.prisma.comment.findMany({
+        where: {
+          newsId: newsId,
+          ...(authorId && { authorId: authorId }),
+        },
+        include: {
+          author: true,
+          news: true,
+        },
+      });
       return PrepareResponse(
         comments,
         allComments.length,

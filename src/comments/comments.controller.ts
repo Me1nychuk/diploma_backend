@@ -34,11 +34,19 @@ export class CommentsController {
 
   @Get()
   findAll(
-    @Query('per_page') per_page: string = '10',
+    @Query('per_page') per_page: string = '5',
     @Query('page') page: string = '1',
     @Query('news-id') newsId: string,
+    @Query('order') order: 'asc' | 'desc' = 'asc',
+    @Query('author-id') authorId: string = '',
   ) {
-    return this.commentsService.findAll(per_page, page, newsId);
+    return this.commentsService.findAll(
+      per_page,
+      page,
+      newsId,
+      order,
+      authorId,
+    );
   }
 
   @Get(':id')
