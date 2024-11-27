@@ -40,6 +40,8 @@ model User {
 
   isVerified Boolean @default(false)
   verificationToken String @default(uuid())
+  resetToken String? 
+  resetTokenExp DateTime? 
 
   Token     Token[]
   isBlocked Boolean   @default(false) @map("is_blocked")

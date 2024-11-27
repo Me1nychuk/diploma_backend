@@ -25,6 +25,8 @@ import { Cookie } from 'libs/common/src/decorators/cookies.decorator';
 import { Public, UserAgent } from 'libs/common/src/decorators';
 import { AuthGuard } from '@nestjs/passport';
 import { UserResponse } from 'src/users/responses';
+import { ResetPasswordDto } from './dto/reset-password-dto';
+import { User } from '@prisma/client';
 
 const REFRESH_TOKEN = 'refreshToken';
 
@@ -38,7 +40,9 @@ export class AuthController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/register')
-  async register(@Body(new ValidationPipe()) RegisterAuthDto: RegisterAuthDto) {
+  async register(
+    @Body(new ValidationPipe()) RegisterAuthDto: RegisterAuthDto,
+  ): Promise<UserResponse | null> {
     return new UserResponse(await this.authService.register(RegisterAuthDto));
   }
   @Post('/login')
@@ -46,7 +50,7 @@ export class AuthController {
     @Body(new ValidationPipe()) loginAuthDto: LoginAuthDto,
     @Res() res: Response,
     @UserAgent() agent: string,
-  ) {
+  ): Promise<void> {
     try {
       const tokens = await this.authService.login(loginAuthDto, agent);
       this.setRefreshToken(tokens, res);
@@ -75,10 +79,25 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  forgotPassword(
+  async forgotPassword(
     @Body(new ValidationPipe()) forgotPasswordDto: ForgotPasswordDto,
   ) {
-    return this.authService.forgotPassword(forgotPasswordDto);
+    return await this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('/reset-password/:token') // !TODO: replace link
+  async resetPassword(
+    @Param('token') resetToken: string,
+    @Body(new ValidationPipe()) password: ResetPasswordDto,
+  ) {
+    if (!resetToken) {
+      throw new HttpException(`Reset token not found`, HttpStatus.BAD_REQUEST);
+    }
+    await this.authService.resetPassword(resetToken, password);
+    return {
+      status: 'success',
+      message: 'Password reset successfully.',
+    };
   }
 
   @Get('/refresh-tokens')
@@ -96,7 +115,7 @@ export class AuthController {
     this.setRefreshToken(tokens, res);
   }
 
-  @Get('/verify/:verificationToken')
+  @Get('/verify/:verificationToken') // !TODO: replace link
   async verify(@Param('verificationToken') verificationToken: string) {
     isValidUUID(verificationToken);
     await this.authService.verify(verificationToken);

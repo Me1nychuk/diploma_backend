@@ -60,7 +60,6 @@ export class UsersController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User | null> {
     isValidUUID(id);

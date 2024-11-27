@@ -15,6 +15,11 @@ export class UserResponse implements User {
 
   @Exclude()
   verificationToken: string;
+  @Exclude()
+  resetToken: string;
+  @Exclude()
+  resetTokenExp: Date;
+
   provider: Provider;
   isVerified: boolean;
   isBlocked: boolean;

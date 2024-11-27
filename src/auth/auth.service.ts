@@ -11,6 +11,9 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
 import { v4 } from 'uuid';
 import { add } from 'date-fns';
+import { ConfigService } from '@nestjs/config';
+import { MailService } from 'src/mail/mail.service';
+import { ResetPasswordDto } from './dto/reset-password-dto';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +21,8 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
   async register(RegisterAuthDto: RegisterAuthDto) {
     return await this.usersService.create(RegisterAuthDto);
@@ -92,7 +97,77 @@ export class AuthService {
     }
   }
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-    return forgotPasswordDto;
+    try {
+      const user = await this.usersService.findOne(forgotPasswordDto.email);
+
+      const updatedUser = await this.prismaService.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          resetToken: v4(),
+          resetTokenExp: add(new Date(), { days: 7 }),
+        },
+      });
+      if (!updatedUser) {
+        throw new HttpException(
+          'Error of generating reset token',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      await this.mailService.resetPassword(
+        updatedUser.email,
+        updatedUser.fullname,
+        this.configService.get('HOME_URL') +
+          `api/auth/reset-password/${updatedUser.resetToken}`,
+      );
+    } catch (error) {
+      handleError(error, 'Error of setting password');
+    }
+  }
+
+  async resetPassword(token: string, passwordDto: ResetPasswordDto) {
+    try {
+      const user = await this.prismaService.user.findFirst({
+        where: {
+          resetToken: token,
+        },
+      });
+      if (!user) {
+        throw new HttpException(
+          'User with this token not found or token does not exist',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (
+        user.resetTokenExp &&
+        user.resetTokenExp.getTime() < new Date().getTime()
+      ) {
+        throw new HttpException('Token has expired', HttpStatus.FORBIDDEN);
+      }
+
+      const hashedPassword = await bcrypt.hash(passwordDto.password, 10);
+
+      const updatedUser = await this.prismaService.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          resetToken: null,
+          resetTokenExp: null,
+        },
+      });
+      if (!updatedUser) {
+        throw new HttpException(
+          'Error of setting password',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return updatedUser;
+    } catch (error) {
+      handleError(error, 'Error of setting password');
+    }
   }
   async verify(verificationToken: string) {
     try {
