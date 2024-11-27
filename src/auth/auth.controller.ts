@@ -26,7 +26,6 @@ import { Public, UserAgent } from 'libs/common/src/decorators';
 import { AuthGuard } from '@nestjs/passport';
 import { UserResponse } from 'src/users/responses';
 import { ResetPasswordDto } from './dto/reset-password-dto';
-import { User } from '@prisma/client';
 
 const REFRESH_TOKEN = 'refreshToken';
 
