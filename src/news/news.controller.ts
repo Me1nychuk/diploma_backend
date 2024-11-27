@@ -40,9 +40,10 @@ export class NewsController {
     @Query('per_page') per_page: string = '10',
     @Query('page') page: string = '1',
     @Query('search') search: string = '',
-    @Query('sort') sortType: string = '',
+    @Query('sortBy') sortBy: 'title' | 'date' = 'title',
+    @Query('order') order: 'asc' | 'desc' = 'asc',
   ): Promise<PaginatedResponse<News> | null> {
-    return this.newsService.findAll(per_page, page, search, sortType);
+    return this.newsService.findAll(per_page, page, search, sortBy, order);
   }
 
   @Get(':id')

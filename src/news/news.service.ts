@@ -57,7 +57,8 @@ export class NewsService {
     per_page: string,
     page: string,
     search: string,
-    sortType: string, // add sort logic
+    sortBy: 'title' | 'date' = 'title',
+    order: 'asc' | 'desc' = 'asc',
   ): Promise<PaginatedResponse<News> | null> {
     try {
       const news = await this.prisma.news.findMany({
@@ -70,6 +71,9 @@ export class NewsService {
         },
         include: {
           comments: true,
+        },
+        orderBy: {
+          [sortBy == 'title' ? 'title' : 'date']: order,
         },
       });
       if (news.length === 0) {
