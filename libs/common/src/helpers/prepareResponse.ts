@@ -1,5 +1,5 @@
 export const PrepareResponse = <T>(
-  data: T,
+  data: T[],
   totalQuantity: number,
   totalPages: number,
   page: number,

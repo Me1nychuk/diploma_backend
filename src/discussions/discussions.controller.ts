@@ -9,6 +9,8 @@ import {
   ValidationPipe,
   Query,
   UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { DiscussionsService } from './discussions.service';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
@@ -19,23 +21,30 @@ import { Discussion } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser, Public } from 'libs/common/src/decorators';
 import { JWTPayload } from 'src/auth/interfaces';
+import { DiscussionResponse } from './responses';
 
 @Public()
 @Controller('discussions')
 export class DiscussionsController {
   constructor(private readonly discussionsService: DiscussionsService) {}
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  create(
+  async create(
     @Body(new ValidationPipe()) createDiscussionDto: CreateDiscussionDto,
     @CurrentUser() currentUser: JWTPayload,
   ): Promise<Discussion | null> {
-    return this.discussionsService.create(createDiscussionDto, currentUser);
+    const discussion = await this.discussionsService.create(
+      createDiscussionDto,
+      currentUser,
+    );
+    return new DiscussionResponse(discussion);
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  findAll(
+  async findAll(
     @Query('per_page') per_page: string = '10',
     @Query('page') page: string = '1',
     @Query('search') search: string = '',
@@ -43,7 +52,7 @@ export class DiscussionsController {
     @Query('order') order: 'asc' | 'desc' = 'asc',
     @Query('author-id') authorId: string = '',
   ): Promise<PaginatedResponse<Discussion> | null> {
-    return this.discussionsService.findAll(
+    const discussions = await this.discussionsService.findAll(
       per_page,
       page,
       search,
@@ -51,32 +60,46 @@ export class DiscussionsController {
       order,
       authorId,
     );
+    const discussionsResponse = discussions.data.map((discussion) => {
+      return new DiscussionResponse(discussion);
+    });
+    return { ...discussions, data: discussionsResponse };
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Discussion | null> {
+  async findOne(@Param('id') id: string): Promise<Discussion | null> {
     isValidUUID(id);
-    return this.discussionsService.findOne(id);
+    const discussion = await this.discussionsService.findOne(id);
+    return new DiscussionResponse(discussion);
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  update(
+  async update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateDiscussionDto: UpdateDiscussionDto,
     @CurrentUser() currentUser: JWTPayload,
   ): Promise<Discussion | null> {
     isValidUUID(id);
-    return this.discussionsService.update(id, updateDiscussionDto, currentUser);
+    const discussion = await this.discussionsService.update(
+      id,
+      updateDiscussionDto,
+      currentUser,
+    );
+    return new DiscussionResponse(discussion);
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  remove(
+  async remove(
     @Param('id') id: string,
     @CurrentUser() currentUser: JWTPayload,
   ): Promise<Discussion | null> {
     isValidUUID(id);
-    return this.discussionsService.remove(id, currentUser);
+    const discussion = await this.discussionsService.remove(id, currentUser);
+    return new DiscussionResponse(discussion);
   }
 }

@@ -22,8 +22,7 @@ enum Provider  {
   GOOGLE
   }
 
-// !TODO: add full fields to the models, it's necessary!!!!!!
-// These models aren't finished, remember!! 
+
 
 model User {
   id       String @id @default(uuid())

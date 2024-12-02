@@ -43,6 +43,10 @@ export class DiscussionsService {
           content: createDiscussionDto.content ?? undefined,
           authorId: currentUser.id,
         },
+        include: {
+          opinions: true,
+          author: true,
+        },
       });
       if (!newDiscussion) {
         throw new HttpException(

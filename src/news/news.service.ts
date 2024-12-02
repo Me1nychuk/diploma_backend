@@ -18,7 +18,11 @@ export class NewsService {
           id: id,
         },
         include: {
-          comments: true,
+          comments: {
+            include: {
+              author: true,
+            },
+          },
         },
       });
 
@@ -41,7 +45,11 @@ export class NewsService {
           imageUrl: createNewsDto.imageUrl,
         },
         include: {
-          comments: true,
+          comments: {
+            include: {
+              author: true,
+            },
+          },
         },
       });
       if (!news) {
@@ -70,12 +78,17 @@ export class NewsService {
           },
         },
         include: {
-          comments: true,
+          comments: {
+            include: {
+              author: true,
+            },
+          },
         },
         orderBy: {
           [sortBy == 'title' ? 'title' : 'createdAt']: order,
         },
       });
+
       if (news.length === 0) {
         throw new HttpException(`News not found`, HttpStatus.NOT_FOUND);
       }
@@ -107,7 +120,11 @@ export class NewsService {
           id: id,
         },
         include: {
-          comments: true,
+          comments: {
+            include: {
+              author: true,
+            },
+          },
         },
       });
       if (!news) {
@@ -133,7 +150,11 @@ export class NewsService {
           imageUrl: updateNewsDto.imageUrl ?? undefined,
         },
         include: {
-          comments: true,
+          comments: {
+            include: {
+              author: true,
+            },
+          },
         },
       });
 
@@ -151,7 +172,11 @@ export class NewsService {
           id: id,
         },
         include: {
-          comments: true,
+          comments: {
+            include: {
+              author: true,
+            },
+          },
         },
       });
     } catch (error) {

@@ -155,6 +155,9 @@ export class UsersService {
           phone: updateUserDto.phone ?? undefined,
           bio: updateUserDto.bio ?? undefined,
           role: Role[updateUserDto.role] ?? undefined,
+          isBlocked: updateUserDto.isBlocked ?? undefined,
+          isVerified: updateUserDto.isVerified ?? undefined,
+          verificationToken: updateUserDto.isVerified ? '' : undefined,
         },
       });
 

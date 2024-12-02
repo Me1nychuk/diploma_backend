@@ -3,7 +3,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import { PrismaService } from 'src/prisma.service';
-import { Comment, News, Role, User } from '@prisma/client';
+import { Comment, News, Role } from '@prisma/client';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { PrepareResponse } from 'libs/common/src/helpers/prepareResponse';
 import { PaginatedResponse } from 'src/types/types';

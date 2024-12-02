@@ -46,10 +46,8 @@ export class UsersController {
   ): Promise<PaginatedResponse<UserResponse> | null> {
     const users = await this.usersService.findAll(per_page, page);
     return {
+      ...users,
       data: users.data.map((user) => new UserResponse(user)),
-      totalQuantity: users.totalQuantity,
-      totalPages: users.totalPages,
-      page: Number(page),
     };
   }
   @Get('/me')
