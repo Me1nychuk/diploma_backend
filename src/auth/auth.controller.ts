@@ -11,6 +11,7 @@ import {
   UseGuards,
   UseInterceptors,
   ClassSerializerInterceptor,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
@@ -18,7 +19,7 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 import { ForgotPasswordDto } from './dto/forgot-password-dto';
 import { isValidUUID } from 'libs/common/src/helpers/isValidUUID';
 import { Tokens } from './interfaces';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from 'libs/common/src/decorators/cookies.decorator';
@@ -139,5 +140,15 @@ export class AuthController {
     res.status(HttpStatus.CREATED).json({
       accessToken: tokens.accessToken,
     });
+  }
+
+  @UseGuards(AuthGuard('google'))
+  @Get('/google')
+  googleAuth() {}
+
+  @UseGuards(AuthGuard('google'))
+  @Get('/google/callback')
+  async googleAuthCallback(@Req() req: Request) {
+    return req.user;
   }
 }

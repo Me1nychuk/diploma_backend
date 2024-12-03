@@ -1,3 +1,3 @@
 import { JwtStrategy } from './jwt.strategy';
-
-export const STRATEGIES = [JwtStrategy];
+import { GoogleStrategy } from './google.strategy';
+export const STRATEGIES = [JwtStrategy, GoogleStrategy];
