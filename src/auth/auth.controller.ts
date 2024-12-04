@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Req,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
@@ -27,6 +28,9 @@ import { Public, UserAgent } from 'libs/common/src/decorators';
 import { AuthGuard } from '@nestjs/passport';
 import { UserResponse } from 'src/users/responses';
 import { ResetPasswordDto } from './dto/reset-password-dto';
+import { HttpService } from '@nestjs/axios';
+import { map, mergeMap } from 'rxjs';
+import { handleTimeoutAndErrors } from 'libs/common/src/helpers/timeout-error.helper';
 
 const REFRESH_TOKEN = 'refreshToken';
 
@@ -36,6 +40,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) {}
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -112,7 +117,7 @@ export class AuthController {
     }
     const tokens = await this.authService.refreshTokens(refreshToken, agent);
 
-    this.setRefreshToken(tokens, res);
+    return this.setRefreshToken(tokens, res);
   }
 
   @Get('/verify/:verificationToken') // !TODO: replace link
@@ -146,9 +151,33 @@ export class AuthController {
   @Get('/google')
   googleAuth() {}
 
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(AuthGuard('google')) // TODO: remove this route, and add similar route at front
   @Get('/google/callback')
-  async googleAuthCallback(@Req() req: Request) {
-    return req.user;
+  async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const token = req.user['accessToken'];
+    return res.redirect(
+      'http://localhost:8080/api/auth/google/success?token=' + token,
+    );
+  }
+
+  @Get('/google/success')
+  async googleSuccess(
+    @Query('token') token: string,
+    @UserAgent() userAgent: string,
+    @Res() res: Response,
+  ) {
+    return this.httpService
+      .get(
+        `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`,
+      )
+      .pipe(
+        mergeMap(({ data: { email } }) =>
+          this.authService.googleAuth(email, userAgent),
+        ),
+        map((tokens) => {
+          return this.setRefreshToken(tokens, res);
+        }),
+        handleTimeoutAndErrors(),
+      );
   }
 }

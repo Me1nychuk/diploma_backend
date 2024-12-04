@@ -9,6 +9,7 @@ import { PrismaService } from 'src/prisma.service';
 import { STRATEGIES } from './strategies';
 import { GUARDS } from './guards';
 import { MailService } from 'src/mail/mail.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   controllers: [AuthController],
@@ -19,6 +20,11 @@ import { MailService } from 'src/mail/mail.service';
     ...STRATEGIES,
     ...GUARDS,
   ],
-  imports: [PassportModule, JwtModule.registerAsync(options()), UsersModule],
+  imports: [
+    PassportModule,
+    JwtModule.registerAsync(options()),
+    UsersModule,
+    HttpModule,
+  ],
 })
 export class AuthModule {}

@@ -71,7 +71,6 @@ export class UsersService {
   }
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
       let checking = false;
       await this.findOne(createUserDto.email)
         .then(() => (checking = false))
@@ -82,19 +81,30 @@ export class UsersService {
           HttpStatus.CONFLICT,
         );
       }
+
+      const hashedPassword = createUserDto.password
+        ? bcrypt.hashSync(createUserDto.password, 10)
+        : undefined;
+
       const newUser = await this.prisma.user.create({
         data: {
           fullname: createUserDto.fullname,
           email: createUserDto.email,
           password: hashedPassword,
+          provider: createUserDto.provider ?? undefined,
+          isVerified: createUserDto.provider ? true : undefined,
+          verificationToken: createUserDto.provider ? '' : undefined,
         },
       });
-      await this.mailService.verify(
-        newUser.email,
-        newUser.fullname,
-        this.configService.get('HOME_URL') +
-          `api/auth/verify/${newUser.verificationToken}`,
-      );
+
+      if (!newUser.isVerified) {
+        await this.mailService.verify(
+          newUser.email,
+          newUser.fullname,
+          this.configService.get('HOME_URL') +
+            `api/auth/verify/${newUser.verificationToken}`,
+        );
+      }
       return newUser;
     } catch (error: unknown) {
       handleError(error, 'Error creating user');

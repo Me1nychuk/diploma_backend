@@ -6,7 +6,7 @@ import { UsersService } from 'src/users/users.service';
 import { Tokens } from './interfaces';
 import { handleError } from 'libs/common/src/helpers/handleError';
 import * as bcrypt from 'bcrypt';
-import { Token, User } from '@prisma/client';
+import { Provider, Token, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
 import { v4 } from 'uuid';
@@ -223,6 +223,30 @@ export class AuthService {
       });
     } catch (error) {
       handleError(error, 'Error logging out');
+    }
+  }
+
+  async googleAuth(email: string, agent: string) {
+    try {
+      const isUserExists = await this.prismaService.user.findFirst({
+        where: {
+          email: email,
+        },
+      });
+      if (isUserExists) {
+        return await this.generateTokens(isUserExists, agent);
+      }
+      const newUser = await this.usersService.create({
+        email: email,
+        fullname: email.split('@')[0],
+        provider: Provider.GOOGLE,
+      });
+      if (!newUser) {
+        throw new HttpException('User not created', HttpStatus.BAD_REQUEST);
+      }
+      return await this.generateTokens(newUser, agent);
+    } catch (error) {
+      handleError(error, 'Error google auth');
     }
   }
 }
