@@ -105,6 +105,12 @@ export class UsersService {
             `api/auth/verify/${newUser.verificationToken}`,
         );
       }
+
+      Promise.all([
+        await this.cacheManager.set(newUser.email, newUser),
+        await this.cacheManager.set(newUser.id, newUser),
+      ]);
+
       return newUser;
     } catch (error: unknown) {
       handleError(error, 'Error creating user');

@@ -234,6 +234,10 @@ export class AuthService {
         },
       });
       if (isUserExists) {
+        await this.prismaService.user.update({
+          where: { id: isUserExists.id },
+          data: { provider: Provider.GOOGLE },
+        });
         return await this.generateTokens(isUserExists, agent);
       }
       const newUser = await this.usersService.create({
