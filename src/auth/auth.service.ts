@@ -179,7 +179,7 @@ export class AuthService {
       if (!user) {
         throw new HttpException(
           'User with this token not found or token does not exist',
-          HttpStatus.UNAUTHORIZED,
+          HttpStatus.BAD_REQUEST,
         );
       }
       await this.prismaService.user.update({

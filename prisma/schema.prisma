@@ -18,9 +18,9 @@ enum Role {
   ADMIN
   TEACHER
 }
-enum Provider  {
+enum Provider {
   GOOGLE
-  }
+}
 
 
 

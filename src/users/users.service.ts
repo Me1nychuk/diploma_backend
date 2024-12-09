@@ -101,8 +101,8 @@ export class UsersService {
         await this.mailService.verify(
           newUser.email,
           newUser.fullname,
-          this.configService.get('HOME_URL') +
-            `api/auth/verify/${newUser.verificationToken}`,
+          this.configService.get('FRONT_URL') +
+            `/verify/${newUser.verificationToken}`,
         );
       }
 
