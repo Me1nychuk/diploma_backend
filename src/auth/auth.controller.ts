@@ -106,7 +106,6 @@ export class AuthController {
   }
 
   @Get('/refresh-tokens')
-  @UseGuards(AuthGuard('jwt'))
   async refreshTokens(
     @Cookie(REFRESH_TOKEN) refreshToken: string,
     @Res() res: Response,
