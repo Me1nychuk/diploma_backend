@@ -65,7 +65,7 @@ export class AuthController {
   }
 
   @Post('/logout')
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   async logout(
     @Cookie(REFRESH_TOKEN) refreshToken: string,
     @Res() res: Response,
