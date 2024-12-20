@@ -2,11 +2,22 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://diploma-backend-zvf0.onrender.com',
+];
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: '*',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true); // Дозволити доступ
+      } else {
+        callback(new Error('Not allowed by CORS')); // Заборонити доступ
+      }
+    },
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Set-Cookie'],
