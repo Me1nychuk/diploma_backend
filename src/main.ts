@@ -4,7 +4,7 @@ import * as cookieParser from 'cookie-parser';
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://diploma-backend-zvf0.onrender.com',
+  'https://diploma-delta-jade.vercel.app',
 ];
 
 async function bootstrap() {
