@@ -176,6 +176,10 @@ export class UsersService {
           verificationToken: updateUserDto.isVerified ? '' : undefined,
         },
       });
+      Promise.all([
+        await this.cacheManager.set(id, user),
+        await this.cacheManager.set(currentUser.email, user),
+      ]);
 
       return user;
     } catch (error: unknown) {

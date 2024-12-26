@@ -28,7 +28,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   password?: string;
 
   @IsString()
-  @Length(9, 9)
+  @Length(13, 13)
   @IsOptional()
   phone?: string;
 
