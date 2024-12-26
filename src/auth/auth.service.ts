@@ -106,7 +106,7 @@ export class AuthService {
         },
         data: {
           resetToken: v4(),
-          resetTokenExp: add(new Date(), { days: 7 }),
+          resetTokenExp: add(new Date(), { days: 2 }),
         },
       });
       if (!updatedUser) {
@@ -118,8 +118,8 @@ export class AuthService {
       await this.mailService.resetPassword(
         updatedUser.email,
         updatedUser.fullname,
-        this.configService.get('HOME_URL') +
-          `api/auth/reset-password/${updatedUser.resetToken}`,
+        this.configService.get('FRONT_URL') +
+          `/reset/${updatedUser.resetToken}`,
       );
     } catch (error) {
       handleError(error, 'Error of setting password');

@@ -83,7 +83,7 @@ export class AuthController {
     res.sendStatus(HttpStatus.OK);
   }
 
-  @Post('forgot-password')
+  @Post('/forgot-password')
   async forgotPassword(
     @Body(new ValidationPipe()) forgotPasswordDto: ForgotPasswordDto,
   ) {
