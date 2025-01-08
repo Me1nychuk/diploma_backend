@@ -165,6 +165,7 @@ export class AuthController {
         this.configService.get('NODE_ENV', 'development') === 'production',
       path: '/',
     });
+    console.log(this.configService.get('FRONT_URL'));
     return res.redirect(
       this.configService.get('FRONT_URL') + '/google/success',
     );
