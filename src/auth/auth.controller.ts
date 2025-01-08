@@ -119,7 +119,7 @@ export class AuthController {
     return this.setRefreshToken(tokens, res);
   }
 
-  @Get('/verify/:verificationToken') // !TODO: replace link
+  @Get('/verify/:verificationToken')
   async verify(@Param('verificationToken') verificationToken: string) {
     isValidUUID(verificationToken);
     await this.authService.verify(verificationToken);
@@ -150,12 +150,23 @@ export class AuthController {
   @Get('/google')
   googleAuth() {}
 
-  @UseGuards(AuthGuard('google')) // TODO: remove this route, and add similar route at front
+  @UseGuards(AuthGuard('google'))
   @Get('/google/callback')
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     const token = req.user['accessToken'];
+    if (!token) {
+      throw new HttpException(`Bad request`, HttpStatus.BAD_REQUEST);
+    }
+    res.cookie('googleToken', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
+      secure:
+        this.configService.get('NODE_ENV', 'development') === 'production',
+      path: '/',
+    });
     return res.redirect(
-      'http://localhost:8080/api/auth/google/success?token=' + token,
+      this.configService.get('FRONT_URL') + '/google/success',
     );
   }
 
