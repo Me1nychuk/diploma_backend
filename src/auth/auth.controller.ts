@@ -190,4 +190,9 @@ export class AuthController {
         handleTimeoutAndErrors(),
       );
   }
+
+  @Get('/google/1111')
+  async googleA() {
+    return { url: this.configService.get('FRONT_URL') };
+  }
 }
