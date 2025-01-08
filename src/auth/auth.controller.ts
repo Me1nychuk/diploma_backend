@@ -165,7 +165,6 @@ export class AuthController {
         this.configService.get('NODE_ENV', 'development') === 'production',
       path: '/',
     });
-    console.log(this.configService.get('FRONT_URL'));
     return res.redirect(
       this.configService.get('FRONT_URL') + '/google/success',
     );
@@ -190,10 +189,5 @@ export class AuthController {
         }),
         handleTimeoutAndErrors(),
       );
-  }
-
-  @Get('/google/1111')
-  async googleA() {
-    return { url: this.configService.get('FRONT_URL') };
   }
 }

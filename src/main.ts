@@ -3,8 +3,8 @@ import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 
 const allowedOrigins = [
-  'http://localhost:3000',
   'https://diploma-delta-jade.vercel.app',
+  'http://localhost:3000',
 ];
 
 async function bootstrap() {
