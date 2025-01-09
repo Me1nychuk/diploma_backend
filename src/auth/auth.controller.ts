@@ -166,7 +166,7 @@ export class AuthController {
       path: '/',
     });
     return res.redirect(
-      this.configService.get('FRONT_URL') + '/google/success',
+      this.configService.get('FRONT_URL') + '/google/success?token=' + token,
     );
   }
 
