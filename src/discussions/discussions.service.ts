@@ -18,7 +18,11 @@ export class DiscussionsService {
           id: id,
         },
         include: {
-          opinions: true,
+          opinions: {
+            include: {
+              author: true,
+            },
+          },
           author: true,
         },
       });
@@ -120,7 +124,11 @@ export class DiscussionsService {
           id: id,
         },
         include: {
-          opinions: true,
+          opinions: {
+            include: {
+              author: true,
+            },
+          },
           author: true,
         },
       });
