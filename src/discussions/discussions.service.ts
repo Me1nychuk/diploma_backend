@@ -71,6 +71,7 @@ export class DiscussionsService {
     sortBy: 'title' | 'date' = 'title',
     order: 'asc' | 'desc' = 'asc',
     authorId: string = '',
+    isVerified: 'all' | 'approved' | 'unapproved' = 'approved',
   ): Promise<PaginatedResponse<Discussion> | null> {
     try {
       const discussions = await this.prisma.discussion.findMany({
@@ -81,6 +82,11 @@ export class DiscussionsService {
             contains: search,
           },
           ...(authorId && { authorId: authorId }),
+          ...(isVerified === 'approved'
+            ? { isApproved: true }
+            : isVerified === 'unapproved'
+              ? { isApproved: false }
+              : undefined),
         },
         include: {
           opinions: true,

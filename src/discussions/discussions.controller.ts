@@ -51,6 +51,8 @@ export class DiscussionsController {
     @Query('sortBy') sortBy: 'title' | 'date' = 'title',
     @Query('order') order: 'asc' | 'desc' = 'asc',
     @Query('author-id') authorId: string = '',
+    @Query('verified')
+    isVerified: 'all' | 'approved' | 'unapproved' = 'unapproved',
   ): Promise<PaginatedResponse<Discussion> | null> {
     const discussions = await this.discussionsService.findAll(
       per_page,
@@ -59,7 +61,9 @@ export class DiscussionsController {
       sortBy,
       order,
       authorId,
+      isVerified,
     );
+
     const discussionsResponse = discussions.data.map((discussion) => {
       return new DiscussionResponse(discussion);
     });
