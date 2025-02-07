@@ -171,6 +171,7 @@ export class DiscussionsService {
         data: {
           title: updateDiscussionDto.title ?? undefined,
           content: updateDiscussionDto.content ?? undefined,
+          isApproved: updateDiscussionDto.isApproved ?? undefined,
         },
         include: {
           opinions: true,
