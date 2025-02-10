@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 export class CreateNewsDto {
   @IsString()
   @IsNotEmpty()
@@ -10,8 +16,8 @@ export class CreateNewsDto {
   @MinLength(10)
   content: string;
 
-  @IsString()
-  @IsNotEmpty()
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   imageUrl?: string[];
 }
