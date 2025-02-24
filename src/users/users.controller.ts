@@ -43,8 +43,17 @@ export class UsersController {
   async findAll(
     @Query('per_page') per_page: string = '10',
     @Query('page') page: string = '1',
+    @Query('sortBy') sortBy: 'title' | 'date' = 'title',
+    @Query('order') order: 'asc' | 'desc' = 'asc',
+    @Query('name-or-email:') nameOrEmail: string,
   ): Promise<PaginatedResponse<UserResponse> | null> {
-    const users = await this.usersService.findAll(per_page, page);
+    const users = await this.usersService.findAll(
+      per_page,
+      page,
+      order,
+      sortBy,
+      nameOrEmail,
+    );
     return {
       ...users,
       data: users.data.map((user) => new UserResponse(user)),

@@ -120,11 +120,23 @@ export class UsersService {
   async findAll(
     per_page: string,
     page: string,
+    order: 'asc' | 'desc',
+    sortBy: 'title' | 'date',
+    nameOrEmail: string,
   ): Promise<PaginatedResponse<User> | null> {
     try {
       const users = await this.prisma.user.findMany({
         skip: Number(per_page) * (Number(page) - 1),
         take: Number(per_page),
+        where: {
+          OR: [
+            { fullname: { contains: nameOrEmail, mode: 'insensitive' } },
+            { email: { contains: nameOrEmail, mode: 'insensitive' } },
+          ],
+        },
+        orderBy: {
+          [sortBy === 'title' ? 'fullname' : 'createdAt']: order,
+        },
         include: {
           comments: true,
           discussions: true,

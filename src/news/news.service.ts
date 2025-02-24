@@ -75,6 +75,7 @@ export class NewsService {
         where: {
           title: {
             contains: search,
+            mode: 'insensitive',
           },
         },
         include: {

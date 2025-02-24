@@ -80,6 +80,7 @@ export class DiscussionsService {
         where: {
           title: {
             contains: search,
+            mode: 'insensitive',
           },
           ...(authorId && { authorId: authorId }),
           ...(isVerified === 'approved'
