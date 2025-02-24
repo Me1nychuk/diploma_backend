@@ -45,7 +45,7 @@ export class UsersController {
     @Query('page') page: string = '1',
     @Query('sortBy') sortBy: 'title' | 'date' = 'title',
     @Query('order') order: 'asc' | 'desc' = 'asc',
-    @Query('name-or-email:') nameOrEmail: string,
+    @Query('name-or-email') nameOrEmail: string,
   ): Promise<PaginatedResponse<UserResponse> | null> {
     const users = await this.usersService.findAll(
       per_page,
