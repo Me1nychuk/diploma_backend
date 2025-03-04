@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 
-const allowedOrigins = [
+export const allowedOrigins = [
   'https://diploma-delta-jade.vercel.app',
   'http://localhost:3000',
 ];
